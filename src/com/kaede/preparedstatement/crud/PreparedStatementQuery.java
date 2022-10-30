@@ -13,71 +13,62 @@ import com.kaede.been.Order;
 import com.kaede.util.JDBCUtils;
 
 /**
- * Ê¹ÓÃPreparedStatementÊµÏÖÕë¶ÔÓÚ²»Í¬±íµÄÍ¨ÓÃµÄ²éÑ¯²Ù×÷
+ * ä½¿ç”¨PreparedStatementå®ç°é’ˆå¯¹äºä¸åŒè¡¨çš„é€šç”¨çš„æŸ¥è¯¢æ“ä½œ
  */
+
 public class PreparedStatementQuery {
     public static void main(String[] args) {
-        /* 
         String sql = "SELECT id,name,email FROM customers WHERE id = ?";
-        Customer customer = new PreparedStatementQuery().getInstance(Customer.class, sql, 19);
+        Customer customer = PreparedStatementQuery.getInstance(Customer.class, sql, 19);
         System.out.println(customer);
 
         String sql2 = "SELECT order_id orderId, order_name orderName FROM `order` WHERE order_id = ?";
         Order order = new PreparedStatementQuery().getInstance(Order.class, sql2, 2);
         System.out.println(order);
-        */
 
-        String sql = "SELECT id,name,email FROM customers WHERE id <= ?";
-        List<Customer> customer = new PreparedStatementQuery().getForList(Customer.class, sql, 19);
-        customer.forEach(x -> System.out.println(x));
+        String sql3 = "SELECT id,name,email FROM customers WHERE id <= ?";
+        List<Customer> customer1 = new PreparedStatementQuery().getForList(Customer.class, sql3, 3);
+        customer1.forEach(x -> System.out.println(x));
 
-        String sql2 = "SELECT order_id orderId, order_name orderName FROM `order` WHERE order_id <= ?";
-        List<Order> order = new PreparedStatementQuery().getForList(Order.class, sql2, 2);
-        order.forEach(System.out::println);
+        String sql4 = "SELECT order_id orderId, order_name orderName FROM `order` WHERE order_id <= ?";
+        List<Order> order1 = new PreparedStatementQuery().getForList(Order.class, sql4, 2);
+        order1.forEach(System.out::println);
 
-        String sql3 = "SELECT order_id orderId, order_name orderName FROM `order`";
-        List<Order> order3 = new PreparedStatementQuery().getForList(Order.class, sql3);
-        order3.forEach(System.out::println);
+        String sql5 = "SELECT order_id orderId, order_name orderName FROM `order`";
+        List<Order> order2 = new PreparedStatementQuery().getForList(Order.class, sql5);
+        order2.forEach(System.out::println);
     }
 
-    //Õë¶ÔÓÚ²»Í¬µÄ±íµÄÍ¨ÓÃµÄ²éÑ¯²Ù×÷£¬·µ»Ø±íÖĞµÄÒ»Ìõ¼ÇÂ¼
-    public <T> T getInstance(Class<T> clazz, String sql, Object ...args){
+    //é’ˆå¯¹äºä¸åŒçš„è¡¨çš„é€šç”¨çš„æŸ¥è¯¢æ“ä½œï¼Œè¿”å›è¡¨ä¸­çš„ä¸€æ¡è®°å½•
+    public static <T> T getInstance(Class<T> clazz, String sql, Object ...args){
         Connection conn = null;
         PreparedStatement ps = null;
         ResultSet rs = null;
         try {
             conn = JDBCUtils.getConnection();
             ps = conn.prepareStatement(sql);
-
-            //Ìî³äÕ¼Î»·û
-            for(int i=0; i<args.length; i++) {
+            //å¡«å……å ä½ç¬¦
+            for(int i=0; i < args.length; i++) {
                 ps.setObject(i + 1, args[i]);
             }
-
             rs = ps.executeQuery();
-            
-            //»ñÈ¡½á¹ûµÄÔªÊı¾İ£¬ÔªÊı¾İ£ºÃèÊöÊı¾İµÄÊı¾İ
+            //è·å–ç»“æœçš„å…ƒæ•°æ®ï¼Œå…ƒæ•°æ®ï¼šæè¿°æ•°æ®çš„æ•°æ®
             ResultSetMetaData rsmd = rs.getMetaData();
-            //Í¨¹ıResultSetMetaData»ñÈ¡½á¹û¼¯ÖĞµÄÁĞÊı  
+            //é€šè¿‡ResultSetMetaDataè·å–ç»“æœé›†ä¸­çš„åˆ—æ•°  
             int columnCount = rsmd.getColumnCount();
-
             if(rs.next()) {
-                T t = clazz.newInstance(); 
-
-                //´¦Àí½á¹û¼¯Ò»ĞĞÊı¾İÖĞµÄÃ¿¸öÁĞ
+                T t = clazz.newInstance();
+                //å¤„ç†ç»“æœé›†ä¸€è¡Œæ•°æ®ä¸­çš„æ¯ä¸ªåˆ—
                 for(int i=0; i<columnCount; i++) {
-                    //»ñÈ¡ÁĞÖµ
+                    //è·å–åˆ—å€¼
                     Object columnValue = rs.getObject(i + 1);
-
-                    //»ñÈ¡Ã¿¸öÁĞµÄÁĞÃû
+                    //è·å–æ¯ä¸ªåˆ—çš„åˆ—å
                     String columnName = rsmd.getColumnLabel(i + 1);
-
-                    //¸øCustomer¶ÔÏóÖ¸¶¨µÄcolumnNameÊôĞÔ¸³ÖµÎªcolumnValue£¬Í¨¹ı·´Éä
+                    //ç»™Customerå¯¹è±¡æŒ‡å®šçš„columnNameå±æ€§èµ‹å€¼ä¸ºcolumnValueï¼Œé€šè¿‡åå°„
                     Field field = clazz.getDeclaredField(columnName);
                     field.setAccessible(true);
                     field.set(t, columnValue);
                 }
-
                 return t;
             }
         } catch(Exception e) {
@@ -85,60 +76,49 @@ public class PreparedStatementQuery {
         } finally{
             JDBCUtils.closeResource(conn, ps, rs);
         }
-
         return null;
     }
 
-    public <T> List<T> getForList(Class<T> clazz, String sql, Object ...args) {
+    //é’ˆå¯¹äºä¸åŒçš„è¡¨çš„é€šç”¨çš„æŸ¥è¯¢æ“ä½œï¼Œè¿”å›è¡¨ä¸­çš„å¤šæ¡è®°å½•
+    public static <T> List<T> getForList(Class<T> clazz, String sql, Object ...args) {
         Connection conn = null;
         PreparedStatement ps = null;
         ResultSet rs = null;
-        //ÔÚÕâÀï´¦ÀíÒì³£¶øÈÃÀïÃæµÄÅ×³öÒì³£ÊÇÒòÎªÕâÀïÒ»¸ö±»Å×³öÁË¶à¸öÒì³££¬ÔÚÕâÀï·¢ÉúÒ»¸öÒì³£
-        //Ö±½ÓÍ£Ö¹È»ºóÍ³Ò»½â¾ö£¬·ÀÖ¹¶à´Îtry catch¼ì²âÒì³££¬Ç°Ò»¸ö³öÏÖÎÊÌâÏÂÃæµÄ¾Í²»»áÖ´ĞĞ
         try {
             conn = JDBCUtils.getConnection();
             ps = conn.prepareStatement(sql);
-
-            //Ìî³äÕ¼Î»·û
+            //å¡«å……å ä½ç¬¦
             for(int i=0; i<args.length; i++) {
                 ps.setObject(i + 1, args[i]);
             }
-
             rs = ps.executeQuery();
-            
-            //»ñÈ¡½á¹ûµÄÔªÊı¾İ£¬ÔªÊı¾İ£ºÃèÊöÊı¾İµÄÊı¾İ
+            //è·å–ç»“æœçš„å…ƒæ•°æ®ï¼Œå…ƒæ•°æ®ï¼šæè¿°æ•°æ®çš„æ•°æ®
             ResultSetMetaData rsmd = rs.getMetaData();
-            //Í¨¹ıResultSetMetaData»ñÈ¡½á¹û¼¯ÖĞµÄÁĞÊı  
+            //é€šè¿‡ResultSetMetaDataè·å–ç»“æœé›†ä¸­çš„åˆ—æ•°  
             int columnCount = rsmd.getColumnCount();
-
-            //³£¼û¼¯ºÏ¶ÔÏó
+            //å¸¸è§é›†åˆå¯¹è±¡
             ArrayList<T> list = new ArrayList<>();
             while(rs.next()) {
-                T t = clazz.newInstance(); 
-
-                //´¦Àí½á¹û¼¯Ò»ĞĞÊı¾İÖĞµÄÃ¿¸öÁĞ£º¸øT¶ÔÏóÖ¸¶¨µÄÊôĞÔ¸³Öµ
+                T t = clazz.newInstance();
+                //å¤„ç†ç»“æœé›†ä¸€è¡Œæ•°æ®ä¸­çš„æ¯ä¸ªåˆ—ï¼šç»™Tå¯¹è±¡æŒ‡å®šçš„å±æ€§èµ‹å€¼
                 for(int i=0; i<columnCount; i++) {
-                    //»ñÈ¡ÁĞÖµ
+                    //è·å–åˆ—å€¼
                     Object columnValue = rs.getObject(i + 1);
-
-                    //»ñÈ¡Ã¿¸öÁĞµÄÁĞÃû
+                    //è·å–æ¯ä¸ªåˆ—çš„åˆ—å
                     String columnName = rsmd.getColumnLabel(i + 1);
-
-                    //¸øCustomer¶ÔÏóÖ¸¶¨µÄcolumnNameÊôĞÔ¸³ÖµÎªcolumnValue£¬Í¨¹ı·´Éä
+                    //ç»™Customerå¯¹è±¡æŒ‡å®šçš„columnNameå±æ€§èµ‹å€¼ä¸ºcolumnValueï¼Œé€šè¿‡åå°„
                     Field field = clazz.getDeclaredField(columnName);
                     field.setAccessible(true);
                     field.set(t, columnValue);
                 }
                 list.add(t);
             }
-
             return list;
         } catch(Exception e) {
             e.printStackTrace();
         } finally{
             JDBCUtils.closeResource(conn, ps, rs);
         }
-
         return null;
     } 
 }

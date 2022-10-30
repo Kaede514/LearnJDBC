@@ -10,20 +10,19 @@ import com.kaede.been.Order;
 import com.kaede.util.JDBCUtils;
 
 /**
- * Õë¶ÔÓÚorder±íÍ¨ÓÃµÄ²éÑ¯²Ù×÷
+ * é’ˆå¯¹äºorderè¡¨é€šç”¨çš„æŸ¥è¯¢æ“ä½œ
  */
 
  /**
-  * Õë¶Ô±íµÄ×Ö¶ÎÃûÓëÀàµÄÊôĞÔÃû²»ÏàÍ¬µÄÇé¿ö
-  *1¡¢±ØĞëÉùÃ÷sql£¬Ê¹ÓÃÀàµÄÊôĞÔÃûÀ´ÃüÃû×Ö¶ÎµÄ±ğÃû
-  *2¡¢Ê¹ÓÃResultSetMetaDataÊ±£¬ĞèÒªÊ¹ÓÃgetColumnLabel()À´Ìæ»»getColumnName()£¬»ñÈ¡ÀàµÄ±ğÃû£¬Î´Æğ±ğÃûÔò»á»ñÈ¡ÀàÃû
+  * é’ˆå¯¹è¡¨çš„å­—æ®µåä¸ç±»çš„å±æ€§åä¸ç›¸åŒçš„æƒ…å†µ
+  * 1ã€å¿…é¡»å£°æ˜sqlï¼Œä½¿ç”¨ç±»çš„å±æ€§åæ¥å‘½åå­—æ®µçš„åˆ«å
+  * 2ã€ä½¿ç”¨ResultSetMetaDataæ—¶ï¼Œéœ€è¦ä½¿ç”¨getColumnLabel()æ¥æ›¿æ¢getColumnName()ï¼Œè·å–å­—æ®µçš„åˆ«åï¼Œæœªèµ·åˆ«ååˆ™ä¼šè·å–å­—æ®µå
   */
 public class OrderForQuery {
     public static void main(String[] args) {
-        //ÁĞÃûÓëÊôĞÔ²»Æ¥Åä
-        // String sql = "select order_id,order_name,order_date from `order` where order_id = ?";
-        
-        //getColumnName()»ñÈ¡µÄÊÇÁĞÃû£¬²»ÊÇ±ğÃû£¬¹ÊĞèÊ¹ÓÃgetColumnLabel()
+        //åˆ—åä¸å±æ€§ä¸åŒ¹é…
+        //String sql = "select order_id,order_name,order_date from `order` where order_id = ?";
+        //getColumnName()è·å–çš„æ˜¯åˆ—åï¼Œä¸æ˜¯åˆ«åï¼Œæ•…éœ€ä½¿ç”¨getColumnLabel()
         String sql = "select order_id orderId,order_name orderName,order_date orderDate from `order` where order_id = ?";
         Order order = new OrderForQuery().queryForOrder(sql, 1);
         System.out.println(order);
@@ -36,32 +35,24 @@ public class OrderForQuery {
         try {
             conn = JDBCUtils.getConnection();
             ps = conn.prepareStatement(sql);
-
             for(int i=0; i<args.length; i++) {
                 ps.setObject(i + 1, args[i]);
             }
-
             rs = ps.executeQuery();
-
             ResultSetMetaData rsmd = rs.getMetaData();
             int columnCount = rsmd.getColumnCount();
-            
             if(rs.next()) {
                 Order order = new Order();
-
                 for(int i=0; i<columnCount; i++) {
                     Object columnValue = rs.getObject(i + 1);
-                    //»ñÈ¡ÁĞµÄÁĞÃû£¬getColumnName   --²»ÍÆ¼öÊ¹ÓÃ
+                    //è·å–åˆ—çš„åˆ—åï¼ŒgetColumnName   --ä¸æ¨èä½¿ç”¨
                     // String columnName = rsmd.getColumnName(i + 1);
-
-                    //»ñÈ¡ÁĞµÄ±ğÃû£¬getColumnLabel  --Î´Æğ±ğÃûµÄ»°Ä¬ÈÏÎªÀàÃû
+                    //è·å–åˆ—çš„åˆ«åï¼ŒgetColumnLabel  --æœªèµ·åˆ«åçš„è¯é»˜è®¤ä¸ºç±»å
                     String columnLabel = rsmd.getColumnLabel(i + 1);
-
                     Field field = Order.class.getDeclaredField(columnLabel);
                     field.setAccessible(true);
                     field.set(order, columnValue);
                 }
-
                 return order;
             }
         } catch(Exception e) {
@@ -69,7 +60,6 @@ public class OrderForQuery {
         } finally {
             JDBCUtils.closeResource(conn, ps, rs);
         }
-
         return null;
     }
 }

@@ -12,80 +12,71 @@ import java.util.List;
 
 import com.kaede.util.JDBCUtils;
 
-//ÓÅ»¯ºóµÄ
-
 public abstract class BaseDAOOptimize<T> {
 
     private Class<T> clazz = null;
 
     {
-        //»ñÈ¡BaseDAOOptimizeµÄ×ÓÀà¼Ì³ĞµÄ¸¸ÀàÖĞµÄ·ºĞÍ
+        //åˆå§‹åŒ–å­ç±»æ—¶ä¼šå‘ä¸Šåˆå§‹åŒ–çˆ¶ç±»ï¼Œè¿™æ—¶çš„thisæ˜¯å­ç±»çš„å¯¹è±¡
+        //è·å–BaseDAOOptimizeçš„å­ç±»ç»§æ‰¿çš„çˆ¶ç±»å¸¦æ³›å‹çš„Classå¯¹è±¡
         Type genericSuperClass = this.getClass().getGenericSuperclass();
         ParameterizedType paramType = (ParameterizedType) genericSuperClass;
+        //è·å–æ³›å‹å‚æ•°
         Type[] types = paramType.getActualTypeArguments();
+        //æ³›å‹çš„ç¬¬ä¸€ä¸ªå‚æ•°
         clazz = (Class<T>) types[0];
     }
 
-    //Í¨ÓÃµÄÔöÉ¾¸Ä²Ù×÷  --version2.0£¨¿¼ÂÇµ½ÊÂÎñ£©
+    //é€šç”¨çš„å¢åˆ æ”¹æ“ä½œ  --version2.0(è€ƒè™‘åˆ°äº‹åŠ¡)
     public int update(Connection conn, String sql, Object ...args) {
         PreparedStatement ps = null;
         try {
-            //1¡¢Ô¤±àÒësqlÓï¾ä£¬·µ»ØPreparedStatementµÄÊµÀı
+            //1ã€é¢„ç¼–è¯‘sqlè¯­å¥ï¼Œè¿”å›PreparedStatementçš„å®ä¾‹
             ps = conn.prepareStatement(sql);
-            //2¡¢Ìî³äÕ¼Î»·û
+            //2ã€å¡«å……å ä½ç¬¦
             for(int i=0; i< args.length; i++) {
-                ps.setObject(i+1, args[i]); //ÓëÊı¾İ¿â½»»¥µÄË÷Òı´Ó1¿ªÊ¼
+                ps.setObject(i+1, args[i]);
             }
-            //3¡¢Ö´ĞĞ
-            // return ps.execute();
-            //Èç¹ûÖ´ĞĞµÄÊÇ²éÑ¯²Ù×÷£¬ÓĞ·µ»Ø½á¹û£¬Ôò´Ë·½·¨·µ»Øtrue£»Èç¹ûÖ´ĞĞµÄÊÇÔöÉ¾¸Ä²Ù×÷£¬Ôò´Ë·½·¨·µ»Øfalse
-            return ps.executeUpdate();  //·µ»ØÔöÉ¾¸ÄÖ´ĞĞºóÓ°ÏìµÄĞĞÊı
+            //3ã€æ‰§è¡Œ
+            return ps.executeUpdate();
         } catch(Exception e) {
             e.printStackTrace();
         } finally {
-            //4¡¢×ÊÔ´µÄ¹Ø±Õ
+            //4ã€èµ„æºçš„å…³é—­
             JDBCUtils.closeResource(null, ps);
         }
         return 0;
-    }   
+    }
 
-    //Õë¶ÔÓÚ²»Í¬µÄ±íµÄÍ¨ÓÃµÄ²éÑ¯²Ù×÷£¬·µ»Ø±íÖĞµÄÒ»Ìõ¼ÇÂ¼  --version2.0£¨¿¼ÂÇµ½ÊÂÎñ£©
-    public T getInstance(Connection conn,   String sql, Object ...args){
+    //é’ˆå¯¹äºä¸åŒçš„è¡¨çš„é€šç”¨çš„æŸ¥è¯¢æ“ä½œï¼Œè¿”å›è¡¨ä¸­çš„ä¸€æ¡è®°å½•  --version2.0(è€ƒè™‘åˆ°äº‹åŠ¡)
+    public T getInstance(Connection conn, String sql, Object ...args){
         PreparedStatement ps = null;
         ResultSet rs = null;
         try {
             conn = JDBCUtils.getConnection();
             ps = conn.prepareStatement(sql);
-
-            //Ìî³äÕ¼Î»·û
+            //å¡«å……å ä½ç¬¦
             for(int i=0; i<args.length; i++) {
                 ps.setObject(i + 1, args[i]);
             }
-
             rs = ps.executeQuery();
-            
-            //»ñÈ¡½á¹ûµÄÔªÊı¾İ£¬ÔªÊı¾İ£ºÃèÊöÊı¾İµÄÊı¾İ
+            //è·å–ç»“æœçš„å…ƒæ•°æ®ï¼Œå…ƒæ•°æ®ï¼šæè¿°æ•°æ®çš„æ•°æ®
             ResultSetMetaData rsmd = rs.getMetaData();
-            //Í¨¹ıResultSetMetaData»ñÈ¡½á¹û¼¯ÖĞµÄÁĞÊı  
+            //é€šè¿‡ResultSetMetaDataè·å–ç»“æœé›†ä¸­çš„åˆ—æ•°  
             int columnCount = rsmd.getColumnCount();
-
             if(rs.next()) {
-                T t = clazz.newInstance(); 
-
-                //´¦Àí½á¹û¼¯Ò»ĞĞÊı¾İÖĞµÄÃ¿¸öÁĞ
+                T t = clazz.newInstance();
+                //å¤„ç†ç»“æœé›†ä¸€è¡Œæ•°æ®ä¸­çš„æ¯ä¸ªåˆ—
                 for(int i=0; i<columnCount; i++) {
-                    //»ñÈ¡ÁĞÖµ
+                    //è·å–åˆ—å€¼
                     Object columnValue = rs.getObject(i + 1);
-
-                    //»ñÈ¡Ã¿¸öÁĞµÄÁĞÃû
+                    //è·å–æ¯ä¸ªåˆ—çš„åˆ—å
                     String columnName = rsmd.getColumnLabel(i + 1);
-
-                    //¸øCustomer¶ÔÏóÖ¸¶¨µÄcolumnNameÊôĞÔ¸³ÖµÎªcolumnValue£¬Í¨¹ı·´Éä
+                    //ç»™Customerå¯¹è±¡æŒ‡å®šçš„columnNameå±æ€§èµ‹å€¼ä¸ºcolumnValueï¼Œé€šè¿‡åå°„
                     Field field = clazz.getDeclaredField(columnName);
                     field.setAccessible(true);
                     field.set(t, columnValue);
                 }
-
                 return t;
             }
         } catch(Exception e) {
@@ -93,76 +84,62 @@ public abstract class BaseDAOOptimize<T> {
         } finally{
             JDBCUtils.closeResource(null, ps, rs);
         }
-
         return null;
     }
 
-    //Õë¶ÔÓÚ²»Í¬µÄ±íµÄÍ¨ÓÃµÄ²éÑ¯²Ù×÷£¬·µ»Ø±íÖĞ¶àÌõ¼ÇÂ¼¹¹³ÉµÄ¼¯ºÏ  --version2.0£¨¿¼ÂÇµ½ÊÂÎñ£©
+    //é’ˆå¯¹äºä¸åŒçš„è¡¨çš„é€šç”¨çš„æŸ¥è¯¢æ“ä½œï¼Œè¿”å›è¡¨ä¸­å¤šæ¡è®°å½•æ„æˆçš„é›†åˆ  --version2.0(è€ƒè™‘åˆ°äº‹åŠ¡)
     public List<T> getForList(Connection conn, String sql, Object ...args) {
         PreparedStatement ps = null;
         ResultSet rs = null;
-        //ÔÚÕâÀï´¦ÀíÒì³£¶øÈÃÀïÃæµÄÅ×³öÒì³£ÊÇÒòÎªÕâÀïÒ»¸ö±»Å×³öÁË¶à¸öÒì³££¬ÔÚÕâÀï·¢ÉúÒ»¸öÒì³£
-        //Ö±½ÓÍ£Ö¹È»ºóÍ³Ò»½â¾ö£¬·ÀÖ¹¶à´Îtry catch¼ì²âÒì³££¬Ç°Ò»¸ö³öÏÖÎÊÌâÏÂÃæµÄ¾Í²»»áÖ´ĞĞ
         try {
             conn = JDBCUtils.getConnection();
             ps = conn.prepareStatement(sql);
-
-            //Ìî³äÕ¼Î»·û
+            //å¡«å……å ä½ç¬¦
             for(int i=0; i<args.length; i++) {
                 ps.setObject(i + 1, args[i]);
             }
-
             rs = ps.executeQuery();
-            
-            //»ñÈ¡½á¹ûµÄÔªÊı¾İ£¬ÔªÊı¾İ£ºÃèÊöÊı¾İµÄÊı¾İ
+            //è·å–ç»“æœçš„å…ƒæ•°æ®ï¼Œå…ƒæ•°æ®ï¼šæè¿°æ•°æ®çš„æ•°æ®
             ResultSetMetaData rsmd = rs.getMetaData();
-            //Í¨¹ıResultSetMetaData»ñÈ¡½á¹û¼¯ÖĞµÄÁĞÊı  
+            //é€šè¿‡ResultSetMetaDataè·å–ç»“æœé›†ä¸­çš„åˆ—æ•°  
             int columnCount = rsmd.getColumnCount();
-
-            //³£¼û¼¯ºÏ¶ÔÏó
+            //å¸¸è§é›†åˆå¯¹è±¡
             ArrayList<T> list = new ArrayList<>();
             while(rs.next()) {
-                T t = clazz.newInstance(); 
-
-                //´¦Àí½á¹û¼¯Ò»ĞĞÊı¾İÖĞµÄÃ¿¸öÁĞ£º¸øT¶ÔÏóÖ¸¶¨µÄÊôĞÔ¸³Öµ
+                T t = clazz.newInstance();
+                //å¤„ç†ç»“æœé›†ä¸€è¡Œæ•°æ®ä¸­çš„æ¯ä¸ªåˆ—ï¼šç»™Tå¯¹è±¡æŒ‡å®šçš„å±æ€§èµ‹å€¼
                 for(int i=0; i<columnCount; i++) {
-                    //»ñÈ¡ÁĞÖµ
+                    //è·å–åˆ—å€¼
                     Object columnValue = rs.getObject(i + 1);
-
-                    //»ñÈ¡Ã¿¸öÁĞµÄÁĞÃû
+                    //è·å–æ¯ä¸ªåˆ—çš„åˆ—å
                     String columnName = rsmd.getColumnLabel(i + 1);
-
-                    //¸øCustomer¶ÔÏóÖ¸¶¨µÄcolumnNameÊôĞÔ¸³ÖµÎªcolumnValue£¬Í¨¹ı·´Éä
+                    //ç»™Customerå¯¹è±¡æŒ‡å®šçš„columnNameå±æ€§èµ‹å€¼ä¸ºcolumnValueï¼Œé€šè¿‡åå°„
                     Field field = clazz.getDeclaredField(columnName);
                     field.setAccessible(true);
                     field.set(t, columnValue);
                 }
                 list.add(t);
             }
-
             return list;
         } catch(Exception e) {
             e.printStackTrace();
         } finally{
             JDBCUtils.closeResource(null, ps, rs);
         }
-
         return null;
-    } 
+    }
 
+    //é’ˆå¯¹äºèšåˆå‡½æ•°ç­‰ç‰¹æ®Šè¡Œä¸ºçš„æŸ¥è¯¢(è€ƒè™‘åˆ°äº‹åŠ¡)
     public <E> E getValue(Connection conn, String sql, Object ...args) {
         PreparedStatement ps = null;
         ResultSet rs = null;
         try {
             conn = JDBCUtils.getConnection();
             ps = conn.prepareStatement(sql);
-
             for(int i=0; i<args.length; i++) {
                 ps.setObject(i + 1, args[i]);
             }
-
             rs = ps.executeQuery();
-            
             if(rs.next()) {
                 return (E) rs.getObject(1);
             }
@@ -171,8 +148,7 @@ public abstract class BaseDAOOptimize<T> {
         } finally {
             JDBCUtils.closeResource(null, ps, rs);
         }
-
         return null;
-    }  
+    }
 
 }

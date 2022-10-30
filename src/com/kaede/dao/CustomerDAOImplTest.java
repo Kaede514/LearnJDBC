@@ -7,8 +7,7 @@ import java.util.List;
 
 import com.kaede.been.Customer;
 import com.kaede.util.JDBCUtils;
-
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 public class CustomerDAOImplTest {
 
@@ -17,11 +16,10 @@ public class CustomerDAOImplTest {
     @Test
     public void testDeleteById() {
         Connection conn = null;
-
         try {
             conn = JDBCUtils.getConnection();   
-            dao.deleteById(conn, 30);
-            System.out.println("Ìí¼Ó³É¹¦");
+            dao.deleteById(conn, 4);
+            System.out.println("åˆ é™¤æˆåŠŸ");
         } catch(Exception e) {
             e.printStackTrace();
         } finally {
@@ -32,7 +30,6 @@ public class CustomerDAOImplTest {
     @Test
     public void testGetAll() {
         Connection conn = null;
-
         try {
             conn = JDBCUtils.getConnection();   
             List<Customer> customer = dao.getAll(conn);
@@ -47,11 +44,10 @@ public class CustomerDAOImplTest {
     @Test
     public void testGetCount() {
         Connection conn = null;
-
         try {
             conn = JDBCUtils.getConnection();   
             long record = dao.getCount(conn);
-            System.out.println("¼ÇÂ¼ÊıÎª£º"+record);
+            System.out.println("è®°å½•æ•°ä¸ºï¼š" + record);
         } catch(Exception e) {
             e.printStackTrace();
         } finally {
@@ -62,7 +58,6 @@ public class CustomerDAOImplTest {
     @Test
     public void testGetCustomerById() {
         Connection conn = null;
-
         try {
             conn = JDBCUtils.getConnection();   
             Customer customer = dao.getCustomerById(conn, 19);
@@ -77,7 +72,6 @@ public class CustomerDAOImplTest {
     @Test
     public void testGetMaxBirth() {
         Connection conn = null;
-
         try {
             conn = JDBCUtils.getConnection();   
             Date date = dao.getMaxBirth(conn);
@@ -92,15 +86,13 @@ public class CustomerDAOImplTest {
     @Test
     public void testInsert() {
         Connection conn = null;
-
         try {
-            conn = JDBCUtils.getConnection();   
-    
+            conn = JDBCUtils.getConnection();
             SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
             java.util.Date date = sdf.parse("2001-08-03");
             Customer customer = new Customer("solar", "solar@126.com", new Date(date.getTime()));
             dao.insert(conn, customer);
-            System.out.println("Ìí¼Ó³É¹¦");
+            System.out.println("æ·»åŠ æˆåŠŸ");
         } catch(Exception e) {
             e.printStackTrace();
         } finally {
@@ -111,14 +103,13 @@ public class CustomerDAOImplTest {
     @Test
     public void testUpdate() {
         Connection conn = null;
-
         try {
             conn = JDBCUtils.getConnection();
             SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
             java.util.Date date = sdf.parse("2014-01-17");
-            Customer customer = new Customer(18, "ÄªÔúÌØ", "mozhate@126.com", new Date(date.getTime()));
+            Customer customer = new Customer(18, "è«æ‰ç‰¹", "mozhate@126.com", new Date(date.getTime()));
             dao.update(conn, customer);
-            System.out.println("ĞŞ¸Ä³É¹¦");
+            System.out.println("ä¿®æ”¹æˆåŠŸ");
         } catch(Exception e) {
             e.printStackTrace();
         } finally {

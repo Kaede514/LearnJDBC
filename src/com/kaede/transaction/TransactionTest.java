@@ -1,75 +1,56 @@
 package com.kaede.transaction;
 
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.SQLException;
+import java.lang.reflect.Field;
+import java.sql.*;
 
 import com.kaede.util.JDBCUtils;
+import org.junit.jupiter.api.Test;
 
 /**
- * DDL²Ù×÷Ò»µ©Ö´ĞĞ£¬¶¼»á×Ô¶¯Ìá½»
- * DMLÄ¬ÈÏÇé¿öÏÂÒ»µ©Ö´ĞĞ£¬¶¼»á×Ô¶¯Ìá½»£¬¿ÉÒÔÍ¨¹ıset autocommit = falseµÄ·½Ê½È¡ÏûDML²Ù×÷µÄ×Ô¶¯Ìá½»
- * Ä¬ÈÏÔÚÁ¬½Ó¹Ø±ÕÊ±£¬»á×Ô¶¯µØÌá½»Êı¾İ
+ * DDLæ“ä½œä¸€æ—¦æ‰§è¡Œï¼Œéƒ½ä¼šè‡ªåŠ¨æäº¤
+ * DMLé»˜è®¤æƒ…å†µä¸‹ä¸€æ—¦æ‰§è¡Œï¼Œéƒ½ä¼šè‡ªåŠ¨æäº¤ï¼Œå¯ä»¥é€šè¿‡ set autocommit = false çš„æ–¹å¼å–æ¶ˆDMLæ“ä½œçš„è‡ªåŠ¨æäº¤
+ * é»˜è®¤åœ¨è¿æ¥å…³é—­æ—¶ï¼Œä¼šè‡ªåŠ¨åœ°æäº¤æ•°æ®
  */
 public class TransactionTest {
-    /**
-     * Õë¶ÔÓÚÊı¾İ±íuser_table£¬AAÓÃ»§¸øBBÓÃ»§×ªÕË100
-     * 
-     * UPDATE user_table SET balance = balance - 100 WHERE user = 'AA'
-     * UPDATE user_table SET balance = balance + 100 WHERE user = 'BB'
-     */
-    public static void main(String[] args) {
-        // new TransactionTest().testUpdate();
-        new TransactionTest().testUpdateWithTx();
-    }
 
+    @Test
     public void testUpdate() {
         String sql1 = "UPDATE user_table SET balance = balance - 100 WHERE user = ?";
         update(sql1, "AA");
-
-        //Ä£ÄâÍøÂçÒì³£
+        //æ¨¡æ‹Ÿç½‘ç»œå¼‚å¸¸
         System.out.println(10 / 0);
-
         String sql2 = "UPDATE user_table SET balance = balance + 100 WHERE user = ?";
         update(sql2, "BB");
-
-        System.out.println("×ªÕË³É¹¦");
+        System.out.println("è½¬è´¦æˆåŠŸ");
     }
 
+    @Test
     public void testUpdateWithTx() {
         Connection conn = null;
         try {
             conn = JDBCUtils.getConnection();
-
-            System.out.println(conn.getAutoCommit());
-
-            //  È¡ÏûÊı¾İµÄ×Ô¶¯Ìá½»
+            //å–æ¶ˆæ•°æ®çš„è‡ªåŠ¨æäº¤
             conn.setAutoCommit(false);
-
             String sql1 = "UPDATE user_table SET balance = balance - 100 WHERE user = ?";
             update(conn, sql1, "AA");
-    
-            //Ä£ÄâÍøÂçÒì³£
+            //æ¨¡æ‹Ÿç½‘ç»œå¼‚å¸¸
             System.out.println(10 / 0);
-    
             String sql2 = "UPDATE user_table SET balance = balance + 100 WHERE user = ?";
             update(conn, sql2, "BB");
-    
-            System.out.println("×ªÕË³É¹¦");
-
-            //Ìá½»Êı¾İ
+            System.out.println("è½¬è´¦æˆåŠŸ");
+            //æäº¤æ•°æ®
             conn.commit();
         } catch (Exception e) {
             e.printStackTrace();
-            //»Ø¹öÊı¾İ
+            //å›æ»šæ•°æ®
             try {
                 conn.rollback();
             } catch (SQLException e1) {
                 e1.printStackTrace();
             }
         } finally {
-            //ĞŞ¸ÄÆäÎª×Ô¶¯Ìá½»Êı¾İ
-            //Ö÷ÒªÕë¶ÔÓÚÊı¾İ¿âÁ¬½Ó³ØµÄÊ¹ÓÃ
+            //ä¿®æ”¹å…¶ä¸ºè‡ªåŠ¨æäº¤æ•°æ®
+            //ä¸»è¦é’ˆå¯¹äºæ•°æ®åº“è¿æ¥æ± çš„ä½¿ç”¨
             try {
                 conn.setAutoCommit(true);
             } catch (SQLException e) {
@@ -79,53 +60,124 @@ public class TransactionTest {
         }
     }
 
-    //Í¨ÓÃµÄÔöÉ¾¸Ä²Ù×÷  --version1.0
+    //é€šç”¨çš„å¢åˆ æ”¹æ“ä½œ  --version1.0
     public int update(String sql, Object ...args) {
         Connection conn = null;
         PreparedStatement ps = null;
         try {
-            //1¡¢»ñÈ¡Êı¾İ¿âµÄÁ¬½Ó
+            //1ã€è·å–æ•°æ®åº“çš„è¿æ¥
             conn = JDBCUtils.getConnection();
-            //2¡¢Ô¤±àÒësqlÓï¾ä£¬·µ»ØPreparedStatementµÄÊµÀı
+            //2ã€é¢„ç¼–è¯‘sqlè¯­å¥ï¼Œè¿”å›PreparedStatementçš„å®ä¾‹
             ps = conn.prepareStatement(sql);
-            //3¡¢Ìî³äÕ¼Î»·û
+            //3ã€å¡«å……å ä½ç¬¦
             for(int i=0; i< args.length; i++) {
-                ps.setObject(i+1, args[i]); //ÓëÊı¾İ¿â½»»¥µÄË÷Òı´Ó1¿ªÊ¼
+                ps.setObject(i+1, args[i]); //ä¸æ•°æ®åº“äº¤äº’çš„ç´¢å¼•ä»1å¼€å§‹
             }
-            //4¡¢Ö´ĞĞ
-            // return ps.execute();
-            //Èç¹ûÖ´ĞĞµÄÊÇ²éÑ¯²Ù×÷£¬ÓĞ·µ»Ø½á¹û£¬Ôò´Ë·½·¨·µ»Øtrue£»Èç¹ûÖ´ĞĞµÄÊÇÔöÉ¾¸Ä²Ù×÷£¬Ôò´Ë·½·¨·µ»Øfalse
-            return ps.executeUpdate();  //·µ»ØÔöÉ¾¸ÄÖ´ĞĞºóÓ°ÏìµÄĞĞÊı
+            //4ã€æ‰§è¡Œ
+            return ps.executeUpdate();
         } catch(Exception e) {
             e.printStackTrace();
         } finally {
-            //5¡¢×ÊÔ´µÄ¹Ø±Õ
+            //5ã€èµ„æºçš„å…³é—­
             JDBCUtils.closeResource(conn, ps);
         }
         return 0;
     }
 
-    //¿¼ÂÇÊÂÎñºóµÄÔöÉ¾¸Ä²Ù×÷
-    //Í¨ÓÃµÄÔöÉ¾¸Ä²Ù×÷  --version2.0
+    //è€ƒè™‘äº‹åŠ¡åçš„å¢åˆ æ”¹æ“ä½œ
+    //é€šç”¨çš„å¢åˆ æ”¹æ“ä½œ  --version2.0
     public int update(Connection conn, String sql, Object ...args) {
         PreparedStatement ps = null;
         try {
-            //1¡¢Ô¤±àÒësqlÓï¾ä£¬·µ»ØPreparedStatementµÄÊµÀı
+            //1ã€é¢„ç¼–è¯‘sqlè¯­å¥ï¼Œè¿”å›PreparedStatementçš„å®ä¾‹
             ps = conn.prepareStatement(sql);
-            //2¡¢Ìî³äÕ¼Î»·û
+            //2ã€å¡«å……å ä½ç¬¦
             for(int i=0; i< args.length; i++) {
-                ps.setObject(i+1, args[i]); //ÓëÊı¾İ¿â½»»¥µÄË÷Òı´Ó1¿ªÊ¼
+                ps.setObject(i+1, args[i]); //ä¸æ•°æ®åº“äº¤äº’çš„ç´¢å¼•ä»1å¼€å§‹
             }
-            //3¡¢Ö´ĞĞ
-            // return ps.execute();
-            //Èç¹ûÖ´ĞĞµÄÊÇ²éÑ¯²Ù×÷£¬ÓĞ·µ»Ø½á¹û£¬Ôò´Ë·½·¨·µ»Øtrue£»Èç¹ûÖ´ĞĞµÄÊÇÔöÉ¾¸Ä²Ù×÷£¬Ôò´Ë·½·¨·µ»Øfalse
-            return ps.executeUpdate();  //·µ»ØÔöÉ¾¸ÄÖ´ĞĞºóÓ°ÏìµÄĞĞÊı
+            //3ã€æ‰§è¡Œ
+            return ps.executeUpdate();
         } catch(Exception e) {
             e.printStackTrace();
         } finally {
-            //4¡¢×ÊÔ´µÄ¹Ø±Õ
+            //4ã€èµ„æºçš„å…³é—­
             JDBCUtils.closeResource(null, ps);
         }
         return 0;
-    }   
+    }
+
+    @Test
+    public void testQueryWithTx() {
+        Connection conn = null;
+        try {
+            conn = JDBCUtils.getConnection();
+            //è·å–å½“å‰è¿æ¥æ˜¯å¦è‡ªåŠ¨æäº¤
+            System.out.println("conn.getAutoCommit() = " + conn.getAutoCommit());
+            //è·å–å½“å‰è¿æ¥çš„éš”ç¦»çº§åˆ«
+            System.out.println("conn.getTransactionIsolation() = " + conn.getTransactionIsolation());
+            //å–æ¶ˆæ•°æ®çš„è‡ªåŠ¨æäº¤
+            conn.setAutoCommit(false);
+            String sql = "SELECT user,password,balance FROM user_table WHERE user = ?";
+            User user = getInstance(conn, User.class, sql, "cc");
+            System.out.println(user);
+            //æäº¤æ•°æ®
+            conn.commit();
+        } catch (Exception e) {
+            e.printStackTrace();
+            //å›æ»šæ•°æ®
+            try {
+                conn.rollback();
+            } catch (SQLException e1) {
+                e1.printStackTrace();
+            }
+        } finally {
+            //ä¿®æ”¹å…¶ä¸ºè‡ªåŠ¨æäº¤æ•°æ®
+            //ä¸»è¦é’ˆå¯¹äºæ•°æ®åº“è¿æ¥æ± çš„ä½¿ç”¨
+            try {
+                conn.setAutoCommit(true);
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
+            JDBCUtils.closeResource(conn, null);
+        }
+    }
+
+    //è€ƒè™‘äº‹åŠ¡åçš„æŸ¥è¯¢æ“ä½œ
+    //é’ˆå¯¹äºä¸åŒçš„è¡¨çš„é€šç”¨çš„æŸ¥è¯¢æ“ä½œï¼Œè¿”å›è¡¨ä¸­çš„ä¸€æ¡è®°å½•  --version2.0
+    public static <T> T getInstance(Connection conn, Class<T> clazz, String sql, Object ...args){
+        PreparedStatement ps = null;
+        ResultSet rs = null;
+        try {
+            ps = conn.prepareStatement(sql);
+            //å¡«å……å ä½ç¬¦
+            for(int i=0; i < args.length; i++) {
+                ps.setObject(i + 1, args[i]);
+            }
+            rs = ps.executeQuery();
+            //è·å–ç»“æœçš„å…ƒæ•°æ®ï¼Œå…ƒæ•°æ®ï¼šæè¿°æ•°æ®çš„æ•°æ®
+            ResultSetMetaData rsmd = rs.getMetaData();
+            //é€šè¿‡ResultSetMetaDataè·å–ç»“æœé›†ä¸­çš„åˆ—æ•°
+            int columnCount = rsmd.getColumnCount();
+            if(rs.next()) {
+                T t = clazz.newInstance();
+                //å¤„ç†ç»“æœé›†ä¸€è¡Œæ•°æ®ä¸­çš„æ¯ä¸ªåˆ—
+                for(int i=0; i<columnCount; i++) {
+                    //è·å–åˆ—å€¼
+                    Object columnValue = rs.getObject(i + 1);
+                    //è·å–æ¯ä¸ªåˆ—çš„åˆ—å
+                    String columnName = rsmd.getColumnLabel(i + 1);
+                    //ç»™Customerå¯¹è±¡æŒ‡å®šçš„columnNameå±æ€§èµ‹å€¼ä¸ºcolumnValueï¼Œé€šè¿‡åå°„
+                    Field field = clazz.getDeclaredField(columnName);
+                    field.setAccessible(true);
+                    field.set(t, columnValue);
+                }
+                return t;
+            }
+        } catch(Exception e) {
+            e.printStackTrace();
+        } finally{
+            JDBCUtils.closeResource(null, ps, rs);
+        }
+        return null;
+    }
 }

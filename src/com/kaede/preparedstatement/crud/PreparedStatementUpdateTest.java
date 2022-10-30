@@ -2,81 +2,89 @@ package com.kaede.preparedstatement.crud;
 
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.text.SimpleDateFormat;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.ZoneOffset;
+import java.time.format.DateTimeFormatter;
 import java.util.Properties;
 
 import com.kaede.util.JDBCUtils;
+import org.junit.jupiter.api.Test;
 
 /**
- * Ê¹ÓÃPreparedStatementÀ´Ìæ»»Statement£¬ÊµÏÖ¶ÔÊı¾İ±íµÄÔöÉ¾¸Ä²é²Ù×÷
- * ÔöÉ¾¸Ä£»²é
+ * ä½¿ç”¨PreparedStatementæ¥æ›¿æ¢Statementï¼Œå®ç°å¯¹æ•°æ®è¡¨çš„å¢åˆ æ”¹æŸ¥æ“ä½œ
+ * å¢åˆ æ”¹ï¼›æŸ¥
  * 
- * ºÃ´¦£º
- * 1¡¢PreparedStatementÌæ»»Statement½â¾öÁËÆ´´®µ¼ÖÂµÄsql×¢ÈëÎÊÌâ
- * 2¡¢PreparedStatement¿ÉÒÔ²Ù×÷BlobÊı¾İ£¬¶øStatement×ö²»µ½
- * 3¡¢PreparedStatement¿ÉÒÔÊµÏÖ¸ü¸ßĞ§µÄÅúÁ¿²Ù×÷
+ * å¥½å¤„ï¼š
+ * 1ã€PreparedStatementæ›¿æ¢Statementè§£å†³äº†æ‹¼ä¸²å¯¼è‡´çš„sqlæ³¨å…¥é—®é¢˜
+ * 2ã€PreparedStatementå¯ä»¥æ“ä½œBlobæ•°æ®ï¼Œè€ŒStatementåšä¸åˆ°
+ * 3ã€PreparedStatementå¯ä»¥å®ç°æ›´é«˜æ•ˆçš„æ‰¹é‡æ“ä½œ
  */
 
 public class PreparedStatementUpdateTest {
     public static void main(String[] args){
-        // new PreparedStatementUpdateTest().testInsert();
-        // new PreparedStatementUpdateTest().testUpdate();
-        // new PreparedStatementUpdateTest().update("delete from customers where id = ?", 3);
-        //mysql¹Ø¼ü×ÖÒªÓÃ×ÅÖØºÅ£¬·ñÔò»á±¨´í
+        PreparedStatementUpdateTest.update("delete from customers where id = ?", 3);
+        // mysqlå…³é”®å­—è¦ç”¨ç€é‡å·ï¼Œå¦åˆ™ä¼šæŠ¥é”™
         // String sql = "update order set order_name = ? where order_id = ?";
         String sql = "update `order` set order_name = ? where order_id = ?";
-        new PreparedStatementUpdateTest().update(sql, "DD", 2);
+        PreparedStatementUpdateTest.update(sql, "DD", 2);
     }
 
-    //Ïòcustomer±íÖĞÌí¼ÓÒ»Ìõ¼ÇÂ¼
+    //å‘customerè¡¨ä¸­æ·»åŠ ä¸€æ¡è®°å½•
+    @Test
     public void testInsert() {
         Connection conn = null;
         PreparedStatement ps = null;
-        FileInputStream fis = null;
-        //ÕâÀï²»ÓÃtry with-resourcesÊÇÒòÎªConnectionºÍPreparedStatementÊÇ½Ó¿Ú£¬Ö»ÓĞÊµÏÖÁËAutoCloseable½Ó¿Ú
-        //µÄÀà£¨ÊµÏÖÁËclose()·½·¨£©²Å¿ÉÒÔÊ¹ÓÃtry with- resources
+        InputStream is = null;
+        //è¿™é‡Œä¸ç”¨try with-resourcesæ˜¯å› ä¸ºConnectionå’ŒPreparedStatementæ˜¯æ¥å£ï¼Œåªæœ‰å®ç°äº†AutoCloseableæ¥å£
+        //çš„ç±»ï¼ˆå®ç°äº†close()æ–¹æ³•ï¼‰æ‰å¯ä»¥ä½¿ç”¨try with- resources
         try {
-            //1¡¢¶ÁÈ¡ÅäÖÃÎÄ¼şÖĞµÄËÄ¸ö»ù±¾ĞÅÏ¢   
-            fis = new FileInputStream("C:\\Users\\hufeng\\code\\JDBC\\src\\com\\kaede\\connection\\jdbc.properties");
+            //1ã€è¯»å–é…ç½®æ–‡ä»¶ä¸­çš„å››ä¸ªåŸºæœ¬ä¿¡æ¯   
+            is = ClassLoader.getSystemClassLoader().getResourceAsStream("jdbc.properties");
             
             Properties pros = new Properties();
-            pros.load(fis);
+            pros.load(is);
 
             String user = pros.getProperty("user");
             String password = pros.getProperty("password");
             String url = pros.getProperty("url");
             String driverClass = pros.getProperty("driverClass");
 
-            //2¡¢¼ÓÔØÇı¶¯
+            //2ã€åŠ è½½é©±åŠ¨
             Class.forName(driverClass);
 
-            //3¡¢»ñÈ¡Á¬½Ó
+            //3ã€è·å–è¿æ¥
             conn = DriverManager.getConnection(url, user, password);
             
-            //4¡¢Ô¤±àÒësqlÓï¾ä£¬·µ»ØPreparedStatementÊµÀı
+            //4ã€é¢„ç¼–è¯‘sqlè¯­å¥ï¼Œè¿”å›PreparedStatementå®ä¾‹
             String sql = "insert into customers(name,email,birth) values(?,?,?)";
             ps = conn.prepareStatement(sql);
 
-            //5¡¢Ìî³äÕ¼Î»·û
-            ps.setString(1,"ÇÙÀï");
+            //5ã€å¡«å……å ä½ç¬¦
+            ps.setString(1,"ç´é‡Œ");
             ps.setString(2, "kotory@gmail.com");
-            SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
-            java.util.Date date = sdf.parse("2001-08-03");
-            ps.setDate(3, new java.sql.Date(date.getTime()));
-
-            //6¡¢Ö´ĞĞ²Ù×÷
+            //SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
+            //java.util.Date date = sdf.parse("2001-08-03");
+            //ps.setDate(3, new java.sql.Date(date.getTime()));
+            //ps.setDate(3, new java.sql.Date(date.getTime()));
+            LocalDate localDate = LocalDate.of(2001, 8, 3);
+            long milli = localDate.atStartOfDay(ZoneOffset.ofHours(8)).toInstant().toEpochMilli();
+            ps.setDate(3, new java.sql.Date(milli));
+            //6ã€æ‰§è¡Œæ“ä½œ
             ps.execute();
         } catch(Exception e) {
             e.printStackTrace();
         } finally {
-            //7¡¢×ÊÔ´µÄ¹Ø±Õ
+            //7ã€èµ„æºçš„å…³é—­
             try {
-                if(fis != null)
-                    fis.close();
+                if(is != null)
+                    is.close();
             } catch (IOException e) {
                 e.printStackTrace();
             }
@@ -95,51 +103,52 @@ public class PreparedStatementUpdateTest {
         }
     }
 
-    //ĞŞ¸Äcustomer±íÖĞµÄÒ»Ìõ¼ÇÂ¼
+    //ä¿®æ”¹customerè¡¨ä¸­çš„ä¸€æ¡è®°å½•
+    @Test
     public void testUpdate() {
         Connection conn = null;
         PreparedStatement ps = null;
         try {
-            //1¡¢»ñÈ¡Êı¾İ¿âµÄÁ¬½Ó
+            //1ã€è·å–æ•°æ®åº“çš„è¿æ¥
             conn = JDBCUtils.getConnection();
 
-            //2¡¢Ô¤±àÒësqlÓï¾ä£¬·µ»ØPreparedStatementµÄÊµÀı
+            //2ã€é¢„ç¼–è¯‘sqlè¯­å¥ï¼Œè¿”å›PreparedStatementçš„å®ä¾‹
             String sql = "update customers set name = ? where id = ?";
             ps = conn.prepareStatement(sql);
 
-            //3¡¢Ìî³äÕ¼Î»·û
-            ps.setObject(1, "ÄªÔúÌØ");
+            //3ã€å¡«å……å ä½ç¬¦
+            ps.setObject(1, "è«æ‰ç‰¹");
             ps.setObject(2, 18);
 
-            //4¡¢Ö´ĞĞ
+            //4ã€æ‰§è¡Œ
             ps.execute();
         } catch(Exception e) {
             e.printStackTrace();
         } finally {
-            //5¡¢×ÊÔ´µÄ¹Ø±Õ
+            //5ã€èµ„æºçš„å…³é—­
             JDBCUtils.closeResource(conn, ps);
         }
     }
 
-    //Í¨ÓÃµÄÔöÉ¾¸Ä²Ù×÷
-    public void update(String sql, Object ...args) {
+    //é€šç”¨çš„å¢åˆ æ”¹æ“ä½œ
+    public static void update(String sql, Object ...args) {
         Connection conn = null;
         PreparedStatement ps = null;
         try {
-            //1¡¢»ñÈ¡Êı¾İ¿âµÄÁ¬½Ó
+            //1ã€è·å–æ•°æ®åº“çš„è¿æ¥
             conn = JDBCUtils.getConnection();
-            //2¡¢Ô¤±àÒësqlÓï¾ä£¬·µ»ØPreparedStatementµÄÊµÀı
+            //2ã€é¢„ç¼–è¯‘sqlè¯­å¥ï¼Œè¿”å›PreparedStatementçš„å®ä¾‹
             ps = conn.prepareStatement(sql);
-            //3¡¢Ìî³äÕ¼Î»·û
+            //3ã€å¡«å……å ä½ç¬¦
             for(int i=0; i< args.length; i++) {
-                ps.setObject(i+1, args[i]); //ÓëÊı¾İ¿â½»»¥µÄË÷Òı´Ó1¿ªÊ¼
+                ps.setObject(i+1, args[i]); //ä¸æ•°æ®åº“äº¤äº’çš„ç´¢å¼•ä»1å¼€å§‹
             }
-            //4¡¢Ö´ĞĞ
+            //4ã€æ‰§è¡Œ
             ps.execute();
         } catch(Exception e) {
             e.printStackTrace();
         } finally {
-            //5¡¢×ÊÔ´µÄ¹Ø±Õ
+            //5ã€èµ„æºçš„å…³é—­
             JDBCUtils.closeResource(conn, ps);
         }   
     }

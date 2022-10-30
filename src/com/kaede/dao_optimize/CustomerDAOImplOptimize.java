@@ -7,8 +7,6 @@ import java.util.List;
 import com.kaede.been.Customer;
 import com.kaede.dao.CustomerDAO;
 
-//优化后的
-
 public class CustomerDAOImplOptimize extends BaseDAOOptimize<Customer> implements CustomerDAO {
     
     @Override
@@ -19,7 +17,7 @@ public class CustomerDAOImplOptimize extends BaseDAOOptimize<Customer> implement
 
     @Override
     public void deleteById(Connection conn, int id) {
-        String sql = "DELETE FROM customers WHERE id =?";
+        String sql = "DELETE FROM customers WHERE id = ?";
         update(conn, sql, id);
     }
 

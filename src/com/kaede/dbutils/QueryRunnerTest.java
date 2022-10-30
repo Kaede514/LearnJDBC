@@ -1,5 +1,12 @@
 package com.kaede.dbutils;
 
+import com.kaede.been.Customer;
+import com.kaede.util.JDBCUtils;
+import org.apache.commons.dbutils.QueryRunner;
+import org.apache.commons.dbutils.ResultSetHandler;
+import org.apache.commons.dbutils.handlers.*;
+import org.junit.jupiter.api.Test;
+
 import java.sql.Connection;
 import java.sql.Date;
 import java.sql.ResultSet;
@@ -7,20 +14,8 @@ import java.sql.SQLException;
 import java.util.List;
 import java.util.Map;
 
-import com.kaede.been.Customer;
-import com.kaede.util.JDBCUtils;
-
-import org.apache.commons.dbutils.QueryRunner;
-import org.apache.commons.dbutils.ResultSetHandler;
-import org.apache.commons.dbutils.handlers.BeanHandler;
-import org.apache.commons.dbutils.handlers.BeanListHandler;
-import org.apache.commons.dbutils.handlers.MapHandler;
-import org.apache.commons.dbutils.handlers.MapListHandler;
-import org.apache.commons.dbutils.handlers.ScalarHandler;
-import org.junit.Test;
-
 /**
- * commons-dbutilsÊÇApache×éÖ¯Ìá¹©µÄÒ»¸ö¿ªÔ´JDBC¹¤¾ßÀà¿â£¬·â×°ÁËÕë¶ÔÓÚÊı¾İ¿âµÄÔöÉ¾¸Ä²é²Ù×÷
+ * commons-dbutilsæ˜¯Apacheç»„ç»‡æä¾›çš„ä¸€ä¸ªå¼€æºJDBCå·¥å…·ç±»åº“ï¼Œå°è£…äº†é’ˆå¯¹äºæ•°æ®åº“çš„å¢åˆ æ”¹æŸ¥æ“ä½œ
  */
 
 public class QueryRunnerTest {
@@ -30,10 +25,10 @@ public class QueryRunnerTest {
         Connection conn = null;
         try {
             QueryRunner runner = new QueryRunner();
-            conn = JDBCUtils.getConnection1();
+            conn = JDBCUtils.getConnectionDruid();
             String sql = "INSERT INTO customers(name,email,birth) VALUES(?,?,?)";
             int insertCount = runner.update(conn, sql, "nazimi", "nazimi@126.com", "2000-08-24");
-            System.out.println("Ìí¼ÓÁË"+insertCount+"Ìõ¼ÇÂ¼");
+            System.out.println("æ·»åŠ äº†"+insertCount+"æ¡è®°å½•");
         } catch(Exception e) {
             e.printStackTrace();
         } finally {
@@ -42,14 +37,14 @@ public class QueryRunnerTest {
     }
     
     /**
-     * BeanHandlerÊÇResultSetHandler½Ó¿ÚµÄÊµÏÖÀà£¬ÓÃÓÚ·â×°±íÖĞÒ»Ìõ¼ÇÂ¼
+     * BeanHandleræ˜¯ResultSetHandleræ¥å£çš„å®ç°ç±»ï¼Œç”¨äºå°è£…è¡¨ä¸­ä¸€æ¡è®°å½•
      */
     @Test
     public void testQuery1() {
         Connection conn = null;
         try {
             QueryRunner runner = new QueryRunner();
-            conn = JDBCUtils.getConnection1();
+            conn = JDBCUtils.getConnectionDruid();
             String sql = "SELECT id,name,email,birth FROM customers WHERE id = ?";
             BeanHandler<Customer> handler = new BeanHandler<>(Customer.class);
             Customer customer = runner.query(conn, sql, handler, 19);
@@ -62,17 +57,17 @@ public class QueryRunnerTest {
     }
 
     /**
-     * BeanListHandlerÊÇResultSetHandler½Ó¿ÚµÄÊµÏÖÀà£¬ÓÃÓÚ·â×°±íÖĞ¶àÌõ¼ÇÂ¼¹¹³ÉµÄ¼¯ºÏ
+     * BeanListHandleræ˜¯ResultSetHandleræ¥å£çš„å®ç°ç±»ï¼Œç”¨äºå°è£…è¡¨ä¸­å¤šæ¡è®°å½•æ„æˆçš„é›†åˆ
      */
     @Test
     public void testQuery2() {
         Connection conn = null;
         try {
             QueryRunner runner = new QueryRunner();
-            conn = JDBCUtils.getConnection1();
-            String sql = "SELECT id,name,email,birth FROM customers WHERE id < ?";
+            conn = JDBCUtils.getConnectionDruid();
+            String sql = "SELECT id,name,email,birth FROM customers WHERE id > ?";
             BeanListHandler<Customer> handler = new BeanListHandler<>(Customer.class);
-            List<Customer> list = runner.query(conn, sql, handler, 30);
+            List<Customer> list = runner.query(conn, sql, handler, 18);
             list.forEach(x -> System.out.println(x));
         } catch(Exception e) {
             e.printStackTrace();
@@ -82,15 +77,15 @@ public class QueryRunnerTest {
     }
 
     /**
-     * MapHandlerÊÇResultSetHandler½Ó¿ÚµÄÊµÏÖÀà£¬ÓÃÓÚ·â×°±íÖĞÒ»Ìõ¼ÇÂ¼
-     * ½«×Ö¶ÎºÍÏàÓ¦×Ö¶ÎµÄÖµ×÷ÎªmapÖĞµÄkeyºÍvalue
+     * MapHandleræ˜¯ResultSetHandleræ¥å£çš„å®ç°ç±»ï¼Œç”¨äºå°è£…è¡¨ä¸­ä¸€æ¡è®°å½•
+     * å°†å­—æ®µå’Œç›¸åº”å­—æ®µçš„å€¼ä½œä¸ºmapä¸­çš„keyå’Œvalue
      */
     @Test
     public void testQuery3() {
         Connection conn = null;
         try {
             QueryRunner runner = new QueryRunner();
-            conn = JDBCUtils.getConnection1();
+            conn = JDBCUtils.getConnectionDruid();
             String sql = "SELECT id,name,email,birth FROM customers WHERE id = ?";
             MapHandler handler = new MapHandler();
             Map<String,Object> map = runner.query(conn, sql, handler, 19);
@@ -103,18 +98,18 @@ public class QueryRunnerTest {
     }
 
     /**
-     * MapListHandlerÊÇResultSetHandler½Ó¿ÚµÄÊµÏÖÀà£¬ÓÃÓÚ·â×°±íÖĞ¶àÌõ¼ÇÂ¼¹¹³ÉµÄ¼¯ºÏ
-     * ½«×Ö¶ÎºÍÏàÓ¦×Ö¶ÎµÄÖµ×÷ÎªmapÖĞµÄkeyºÍvalue£¬½«ÕâĞ©mapÌí¼Óµ½ListÖĞ
+     * MapListHandleræ˜¯ResultSetHandleræ¥å£çš„å®ç°ç±»ï¼Œç”¨äºå°è£…è¡¨ä¸­å¤šæ¡è®°å½•æ„æˆçš„é›†åˆ
+     * å°†å­—æ®µå’Œç›¸åº”å­—æ®µçš„å€¼ä½œä¸ºmapä¸­çš„keyå’Œvalueï¼Œå°†è¿™äº›mapæ·»åŠ åˆ°Listä¸­
      */
     @Test
     public void testQuery4() {
         Connection conn = null;
         try {
             QueryRunner runner = new QueryRunner();
-            conn = JDBCUtils.getConnection1();
-            String sql = "SELECT id,name,email,birth FROM customers WHERE id < ?";
+            conn = JDBCUtils.getConnectionDruid();
+            String sql = "SELECT id,name,email,birth FROM customers WHERE id > ?";
             MapListHandler handler = new MapListHandler();
-            List<Map<String,Object>> list = runner.query(conn, sql, handler, 30);
+            List<Map<String,Object>> list = runner.query(conn, sql, handler, 18);
             list.forEach(x -> System.out.println(x));
         } catch(Exception e) {
             e.printStackTrace();
@@ -124,14 +119,14 @@ public class QueryRunnerTest {
     }
 
     /**
-     * ScalarHandlerÊÇResultSetHandler½Ó¿ÚµÄÊµÏÖÀà£¬ÓÃÓÚ²éÑ¯ÌØÊâÖµ
+     * ScalarHandleræ˜¯ResultSetHandleræ¥å£çš„å®ç°ç±»ï¼Œç”¨äºæŸ¥è¯¢ç‰¹æ®Šå€¼
      */
     @Test
     public void testQuery5() {
         Connection conn = null;
         try {
             QueryRunner runner = new QueryRunner();
-            conn = JDBCUtils.getConnection1();
+            conn = JDBCUtils.getConnectionDruid();
             String sql = "SELECT COUNT(*) FROM customers";
             ScalarHandler handler = new ScalarHandler();
             long count = (long) runner.query(conn, sql, handler);
@@ -148,7 +143,7 @@ public class QueryRunnerTest {
         Connection conn = null;
         try {
             QueryRunner runner = new QueryRunner();
-            conn = JDBCUtils.getConnection1();
+            conn = JDBCUtils.getConnectionDruid();
             String sql = "SELECT MAX(birth) FROM customers";
             ScalarHandler handler = new ScalarHandler();
             Date date = (Date) runner.query(conn, sql, handler);
@@ -161,19 +156,19 @@ public class QueryRunnerTest {
     }
 
     /**
-     * ×Ô¶¨ÒåResultSetHandler½Ó¿ÚµÄÊµÏÖÀà
+     * è‡ªå®šä¹‰ResultSetHandleræ¥å£çš„å®ç°ç±»
      */
     @Test
     public void testQuery7() {
         Connection conn = null;
         try {
             QueryRunner runner = new QueryRunner();
-            conn = JDBCUtils.getConnection1();
+            conn = JDBCUtils.getConnectionDruid();
             String sql = "SELECT id,name,email,birth FROM customers WHERE id = ?";
             ResultSetHandler<Customer> handler = new ResultSetHandler<Customer>() {
                 @Override
                 public Customer handle(ResultSet rs) throws SQLException {
-                    if(rs.next()) { 
+                    if(rs.next()) {
                         int id = rs.getInt(1);
                         String name = rs.getString(2);
                         String email = rs.getString(3);
@@ -182,9 +177,9 @@ public class QueryRunnerTest {
                         return customer;
                     }
                     return null;
-                } 
+                }
             };
-            Customer customer = runner.query(conn, sql, handler, 29);
+            Customer customer = runner.query(conn, sql, handler, 20);
             System.out.println(customer);
         } catch(Exception e) {
             e.printStackTrace();
@@ -192,4 +187,5 @@ public class QueryRunnerTest {
             JDBCUtils.closeResource(conn, null);
         }
     }
+
 }

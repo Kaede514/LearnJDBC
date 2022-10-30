@@ -9,24 +9,24 @@ import java.sql.ResultSetMetaData;
 
 import com.kaede.been.Customer;
 import com.kaede.util.JDBCUtils;
+import org.junit.jupiter.api.Test;
 
 /**
- * Õë¶ÔÓÚcustomer±íµÄ²éÑ¯²Ù×÷
+ * é’ˆå¯¹äºcustomerè¡¨çš„æŸ¥è¯¢æ“ä½œ
  */
 
 public class CustomerForQuery {
     public static void main(String[] args) throws Exception {
-        // new CustomerForQuery().testQuery1();
         String sql = "select id,name,birth,email from customers where id = ?";
         Customer customer = new CustomerForQuery().queryForCustomers(sql, 19);
         System.out.println(customer);
-
         String sql2 = "select id,name,email from customers where name = ?";
-        Customer customer2 = new CustomerForQuery().queryForCustomers(sql2, "ÇÙÀï");
+        Customer customer2 = new CustomerForQuery().queryForCustomers(sql2, "ç´é‡Œ");
         System.out.println(customer2);
     }
-    
-    public void testQuery1() throws Exception{
+
+    @Test
+    public void testQuery() throws Exception{
         Connection conn = null;
         PreparedStatement ps = null;
         ResultSet rs = null;
@@ -35,37 +35,32 @@ public class CustomerForQuery {
             String sql ="select id,name,email,birth from customers where id = ?";
             ps = conn.prepareStatement(sql);
             ps.setInt(1, 19);
-
-            //Ö´ĞĞ²¢·µ»Ø½á¹û¼¯
+            //æ‰§è¡Œå¹¶è¿”å›ç»“æœé›†
             rs = ps.executeQuery();
-
-            //´¦Àí½á¹û¼¯
-            if(rs.next()) { //ÅĞ¶Ï½á¹û¼¯µÄÏÂÒ»ÌõÊÇ·ñÓĞÊı¾İ£¬Èç¹ûÓĞÊı¾İ·µ»Øtrue²¢Ö¸ÕëÏÂÒÆ£¬·ñÔòÖ¸Õë²»»áÏÂÒÆÖ±½Ó½áÊø
-                //»ñÈ¡µ±Ç°ÕâÌõÊı¾İµÄ¸÷¸ö×Ö¶ÎÖµ
+            //å¤„ç†ç»“æœé›†
+            if(rs.next()) { //åˆ¤æ–­ç»“æœé›†çš„ä¸‹ä¸€æ¡æ˜¯å¦æœ‰æ•°æ®ï¼Œå¦‚æœæœ‰æ•°æ®è¿”å›trueå¹¶æŒ‡é’ˆä¸‹ç§»ï¼Œå¦åˆ™æŒ‡é’ˆä¸ä¼šä¸‹ç§»ç›´æ¥ç»“æŸ
+                //è·å–å½“å‰è¿™æ¡æ•°æ®çš„å„ä¸ªå­—æ®µå€¼
                 int id = rs.getInt(1);
                 String name = rs.getString(2);
                 String email = rs.getString(3);
                 Date date = rs.getDate(4);
-
-                //·½Ê½1£º
+                //æ–¹å¼1ï¼š
                 // System.out.println("id = "+id+", name = "+name+", birth = "+email+", date = "+date);
-
-                //·½Ê½2£º
+                //æ–¹å¼2ï¼š
                 // Object[] data = new Object[]{id, name, email, date};
-
-                //·½Ê½3£º½«Êı¾İ·â×°ÎªÒ»¸ö¶ÔÏó£¨ÍÆ¼ö£©
+                //æ–¹å¼3ï¼šå°†æ•°æ®å°è£…ä¸ºä¸€ä¸ªå¯¹è±¡ï¼ˆæ¨èï¼‰
                 Customer customer = new Customer(id, name, email, date);
                 System.out.println(customer);
             }
         } catch(Exception e) {
             e.printStackTrace();
         } finally {
-            //¹Ø±Õ×ÊÔ´
+            //å…³é—­èµ„æº
             JDBCUtils.closeResource(conn, ps, rs);
         }
     }
 
-    //Õë¶ÔÓÚcustomers±íµÄÍ¨ÓÃµÄ²éÑ¯²Ù×÷
+    //é’ˆå¯¹äºcustomersè¡¨çš„é€šç”¨çš„æŸ¥è¯¢æ“ä½œ
     public Customer queryForCustomers(String sql, Object ...args){
         Connection conn = null;
         PreparedStatement ps = null;
@@ -73,36 +68,28 @@ public class CustomerForQuery {
         try {
             conn = JDBCUtils.getConnection();
             ps = conn.prepareStatement(sql);
-
-            //Ìî³äÕ¼Î»·û
+            //å¡«å……å ä½ç¬¦
             for(int i=0; i<args.length; i++) {
                 ps.setObject(i + 1, args[i]);
             }
-
             rs = ps.executeQuery();
-            
-            //»ñÈ¡½á¹ûµÄÔªÊı¾İ£¬ÔªÊı¾İ£ºÃèÊöÊı¾İµÄÊı¾İ
+            //è·å–ç»“æœçš„å…ƒæ•°æ®ï¼Œå…ƒæ•°æ®ï¼šæè¿°æ•°æ®çš„æ•°æ®
             ResultSetMetaData rsmd = rs.getMetaData();
-            //Í¨¹ıResultSetMetaData»ñÈ¡½á¹û¼¯ÖĞµÄÁĞÊı  
+            //é€šè¿‡ResultSetMetaDataè·å–ç»“æœé›†ä¸­çš„åˆ—æ•°  
             int columnCount = rsmd.getColumnCount();
-
             if(rs.next()) {
                 Customer customer = new Customer();
-
-                //´¦Àí½á¹û¼¯Ò»ĞĞÊı¾İÖĞµÄÃ¿¸öÁĞ
+                //å¤„ç†ç»“æœé›†ä¸€è¡Œæ•°æ®ä¸­çš„æ¯ä¸ªåˆ—
                 for(int i=0; i<columnCount; i++) {
-                    //»ñÈ¡ÁĞÖµ
+                    //è·å–åˆ—å€¼
                     Object columnValue = rs.getObject(i + 1);
-
-                    //»ñÈ¡Ã¿¸öÁĞµÄÁĞÃû
+                    //è·å–æ¯ä¸ªåˆ—çš„åˆ—å
                     String columnName = rsmd.getColumnName(i + 1);
-
-                    //¸øCustomer¶ÔÏóÖ¸¶¨µÄcolumnNameÊôĞÔ¸³ÖµÎªcolumnValue£¬Í¨¹ı·´Éä
+                    //ç»™Customerå¯¹è±¡æŒ‡å®šçš„columnNameå±æ€§èµ‹å€¼ä¸ºcolumnValueï¼Œé€šè¿‡åå°„
                     Field field = Customer.class.getDeclaredField(columnName);
                     field.setAccessible(true);
                     field.set(customer, columnValue);
                 }
-
                 return customer;
             }
         } catch(Exception e) {
@@ -110,7 +97,6 @@ public class CustomerForQuery {
         } finally{
             JDBCUtils.closeResource(conn, ps, rs);
         }
-
         return null;
     }
 }

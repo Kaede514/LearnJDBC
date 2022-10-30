@@ -16,7 +16,7 @@ public class CustomerDAOImpl extends BaseDAO implements CustomerDAO {
 
     @Override
     public void deleteById(Connection conn, int id) {
-        String sql = "DELETE FROM customers WHERE id =?";
+        String sql = "DELETE FROM customers WHERE id = ?";
         update(conn, sql, id);
     }
 

@@ -7,28 +7,28 @@ import java.util.List;
 import com.kaede.been.Customer;
 
 /**
- * ´Ë½Ó¿ÚÓÃÓÚ¹æ·¶Õë¶ÔÓÚcustomers±íµÄ³£ÓÃ²Ù×÷
+ * æ­¤æ¥å£ç”¨äºè§„èŒƒé’ˆå¯¹äºcustomersè¡¨çš„å¸¸ç”¨æ“ä½œ
  */
 
 public interface CustomerDAO {
-    //½«customer¶ÔÏóÌí¼Óµ½Êı¾İ¿âÖĞ
+    //å°†customerå¯¹è±¡æ·»åŠ åˆ°æ•°æ®åº“ä¸­
     void insert(Connection conn, Customer customer);
 
-    //Õë¶ÔÖ¸¶¨µÄid£¬É¾³ı±íÖĞµÄÒ»Ìõ¼ÇÂ¼
+    //é’ˆå¯¹æŒ‡å®šçš„idï¼Œåˆ é™¤è¡¨ä¸­çš„ä¸€æ¡è®°å½•
     void deleteById(Connection conn, int id);
 
-    //Õë¶ÔÄÚ´æÖĞµÄcustomer¶ÔÏó£¬ĞŞ¸Ä±íÖĞÖ¸¶¨µÄ¼ÇÂ¼
+    //é’ˆå¯¹å†…å­˜ä¸­çš„customerå¯¹è±¡ï¼Œä¿®æ”¹è¡¨ä¸­æŒ‡å®šçš„è®°å½•
     void update(Connection conn, Customer customer);
 
-    //Õë¶ÔÖ¸¶¨µÄid²éÑ¯µÃµ½¶ÔÓ¦µÄCustomer¶ÔÏó
+    //é’ˆå¯¹æŒ‡å®šçš„idæŸ¥è¯¢å¾—åˆ°å¯¹åº”çš„Customerå¯¹è±¡
     Customer getCustomerById(Connection conn, int id);
 
-    //²éÑ¯±íÖĞµÄËùÓĞ¼ÇÂ¼¹¹³ÉµÄ¼¯ºÏ
+    //æŸ¥è¯¢è¡¨ä¸­çš„æ‰€æœ‰è®°å½•æ„æˆçš„é›†åˆ
     List<Customer> getAll(Connection conn);
 
-    //·µ»Ø±íÖĞÊı¾İµÄÌõÄ¿Êı
+    //è¿”å›è¡¨ä¸­æ•°æ®çš„æ¡ç›®æ•°
     long getCount(Connection conn);
 
-    //·µ»ØÊı¾İ±íÖĞ×î´óµÄÉúÈÕ
+    //è¿”å›æ•°æ®è¡¨ä¸­æœ€å¤§çš„ç”Ÿæ—¥
     Date getMaxBirth(Connection conn); 
 }

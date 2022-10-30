@@ -3,10 +3,10 @@ package com.kaede.been;
 import java.sql.Date;
 
 /**
- * ORM±à³ÌË¼Ïë£¨Object relational mapping£©
- * Ò»¸öÊı¾İ±í¶ÔÓ¦Ò»¸öjavaÀà
- * ±íÖĞµÄÒ»Ìõ¼ÇÂ¼¶ÔÓ¦javaµÄÒ»¸ö¶ÔÏó
- * ±íÖĞµÄÒ»¸ö×Ö¶Î¶ÔÓ¦javaµÄÒ»¸öÊôĞÔ
+ * ORMç¼–ç¨‹æ€æƒ³ï¼ˆObject relational mappingï¼‰
+ * ä¸€ä¸ªæ•°æ®è¡¨å¯¹åº”ä¸€ä¸ªjavaç±»
+ * è¡¨ä¸­çš„ä¸€æ¡è®°å½•å¯¹åº”javaç±»çš„ä¸€ä¸ªå¯¹è±¡
+ * è¡¨ä¸­çš„ä¸€ä¸ªå­—æ®µå¯¹åº”javaç±»çš„ä¸€ä¸ªå±æ€§
  */
 
 public class Customer {
@@ -68,5 +68,4 @@ public class Customer {
         return "Customer [id=" + id + ", name=" + name + ", email=" + email + ", birth=" + birth + "]";
     }
 
-        
 }

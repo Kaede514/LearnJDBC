@@ -12,19 +12,16 @@ import java.sql.ResultSet;
     
 import com.kaede.been.Customer;
 import com.kaede.util.JDBCUtils;
+import org.junit.jupiter.api.Test;
 
 /**
- * ²âÊÔÊ¹ÓÃPreparedStatementÀ´²Ù×÷BolbÀàĞÍÊı¾İ
+ * æµ‹è¯•ä½¿ç”¨PreparedStatementæ¥æ“ä½œBolbç±»å‹æ•°æ®
  */
 
 public class BlobTest {
-    public static void main(String[] args) {
-        // new BlobTest().testInsert();
-        // new BlobTest().testQuery();
-        // new BlobTest().testInsert2();
-    }
 
-    //ÏòÊı¾İ±ícustomersÖĞ²åÈëBolbÀàĞÍÊı¾İ
+    //å‘æ•°æ®è¡¨customersä¸­æ’å…¥Bolbç±»å‹æ•°æ®
+    @Test
     public void testInsert() {
         Connection conn = null;
         PreparedStatement ps = null;
@@ -36,9 +33,9 @@ public class BlobTest {
             ps.setObject(1, "lunar");
             ps.setObject(2, "lunar@126.com");
             ps.setObject(3, "2003-03-27");
-            fis = new FileInputStream("lunarsama.jpg");
+            //lunasama.jpgæ”¾åœ¨srcä¸‹
+            fis = new FileInputStream("lunasama.jpg");
             ps.setBlob(4, fis);
-    
             ps.executeUpdate();
         } catch(Exception e) {
             e.printStackTrace();
@@ -53,7 +50,35 @@ public class BlobTest {
         }
     }
 
-    //²éÑ¯Êı¾İ±ícustomersÖĞµÄBolbÀàĞÍÊı¾İ
+    //å‘æ•°æ®è¡¨customersä¸­ä¿®æ”¹Bolbç±»å‹æ•°æ®
+    @Test
+    public void testUpdate() {
+        Connection conn = null;
+        PreparedStatement ps = null;
+        FileInputStream fis = null;
+        try {
+            conn = JDBCUtils.getConnection();
+            String sql = "UPDATE customers SET photo = ? WHERE id = ?";
+            ps = conn.prepareStatement(sql);
+            fis = new FileInputStream("lunasama1.jpg");
+            ps.setBlob(1, fis);
+            ps.setObject(2,20);
+            ps.executeUpdate();
+        } catch(Exception e) {
+            e.printStackTrace();
+        } finally {
+            try {
+                if(fis != null)
+                    fis.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+            JDBCUtils.closeResource(conn, ps);
+        }
+    }
+
+    //æŸ¥è¯¢æ•°æ®è¡¨customersä¸­çš„Bolbç±»å‹æ•°æ®
+    @Test
     public void testQuery() {
         Connection conn = null;
         PreparedStatement ps = null;
@@ -64,28 +89,25 @@ public class BlobTest {
             conn = JDBCUtils.getConnection();
             String sql = "SELECT id,name,email,birth,photo FROM customers WHERE id = ?";
             ps = conn.prepareStatement(sql);
-            ps.setInt(1, 29);
-    
+            ps.setInt(1,20);
             rs = ps.executeQuery();
             if(rs.next()) {
-                // ·½Ê½1£º
+                // æ–¹å¼1ï¼š
                 // int id = rs.getInt(1);
                 // String name = rs.getString(2);
                 // String email = rs.getString(3);
                 // Date birth = rs.getDate(4);
-                // ·½Ê½2£º
+                // æ–¹å¼2ï¼š
                 int id = rs.getInt("id");
                 String name = rs.getString("name");
                 String email = rs.getString("email");
                 Date birth = rs.getDate("birth");
-    
                 Customer customer = new Customer(id, name, email, birth);
                 System.out.println(customer);
-    
-                //½«BlobµÄ×Ö¶ÎÏÂÔØÏÂÀ´£¬ÒÔÎÄ¼şµÄ·½Ê½±£´æÔÚ±¾µØ
+                //å°†Blobçš„å­—æ®µä¸‹è½½ä¸‹æ¥ï¼Œä»¥æ–‡ä»¶çš„æ–¹å¼ä¿å­˜åœ¨æœ¬åœ°
                 Blob photo = rs.getBlob("photo");
                 is = photo.getBinaryStream();
-                fos = new FileOutputStream("lunar_copy.jpg");
+                fos = new FileOutputStream("lunasama_copy.jpg");
                 byte[] buffer = new byte[1024];
                 int temp;
                 while((temp = is.read(buffer)) != -1) {
@@ -108,32 +130,6 @@ public class BlobTest {
                 e.printStackTrace();
             }
             JDBCUtils.closeResource(conn, ps, rs);
-        }
-    }
-
-    public void testInsert2() {
-        Connection conn = null;
-        PreparedStatement ps = null;
-        FileInputStream fis = null;
-        try {
-            conn = JDBCUtils.getConnection();
-            String sql = "UPDATE customers SET photo = ? WHERE id = ?";
-            ps = conn.prepareStatement(sql);
-            fis = new FileInputStream("D:\\aaaÍ¼Æ¬\\ÃûÎªÏ£ÍûµÄ¾øÍû_63979045_p4.png");
-            ps.setBlob(1, fis);
-            ps.setInt(2, 28);
-    
-            ps.executeUpdate();
-        } catch(Exception e) {
-            e.printStackTrace();
-        } finally {
-            try {
-                if(fis != null)
-                    fis.close();
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-            JDBCUtils.closeResource(conn, ps);
         }
     }
 }

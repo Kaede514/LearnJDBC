@@ -1,51 +1,43 @@
 package com.kaede.util;
 
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.sql.DriverManager;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.util.Properties;
-
-import javax.sql.DataSource;
-
 import com.alibaba.druid.pool.DruidDataSourceFactory;
-
 import org.apache.commons.dbutils.DbUtils;
 
-import java.sql.Connection;
+import javax.sql.DataSource;
+import java.io.IOException;
+import java.io.InputStream;
+import java.sql.*;
+import java.util.Properties;
 
 /**
- * ²Ù×÷Êı¾İ¿âµÄ¹¤¾ßÀà
+ * æ“ä½œæ•°æ®åº“çš„å·¥å…·ç±»
  */
 
 public class JDBCUtils {
-    //»ñÈ¡Êı¾İ¿âµÄÁ¬½Ó
+    //è·å–æ•°æ®åº“çš„è¿æ¥
     public static Connection getConnection() throws Exception {
-        //1¡¢¶ÁÈ¡ÅäÖÃÎÄ¼şÖĞµÄËÄ¸ö»ù±¾ĞÅÏ¢   
-        FileInputStream fis = new FileInputStream("C:\\Users\\hufeng\\code\\JDBC\\src\\com\\kaede\\connection\\jdbc.properties");
+        //1ã€è¯»å–é…ç½®æ–‡ä»¶ä¸­çš„å››ä¸ªåŸºæœ¬ä¿¡æ¯   
+        InputStream is = ClassLoader.getSystemClassLoader().getResourceAsStream("jdbc.properties");
         Properties pros = new Properties();
-        pros.load(fis);
+        pros.load(is);
 
         String user = pros.getProperty("user");
         String password = pros.getProperty("password");
         String url = pros.getProperty("url");
         String driverClass = pros.getProperty("driverClass");
 
-        //2¡¢¼ÓÔØÇı¶¯
+        //2ã€åŠ è½½é©±åŠ¨
         Class.forName(driverClass);
 
-        //3¡¢»ñÈ¡Á¬½Ó
+        //3ã€è·å–è¿æ¥
         Connection conn = DriverManager.getConnection(url, user, password);
 
-        if(fis != null) fis.close();
+        if(is != null) is.close();
         return conn;
     }
 
-    //¹Ø±ÕÊı¾İ¿âµÄÁ¬½Ó
-    public static void closeResource(Connection conn, PreparedStatement ps) {
+    //å…³é—­æ•°æ®åº“çš„è¿æ¥
+    public static void closeResource(Connection conn, Statement ps) {
         try {
             if(ps != null)
                 ps.close();
@@ -60,7 +52,7 @@ public class JDBCUtils {
         }
     }
 
-    //¹Ø±Õ×ÊÔ´µÄ²Ù×÷
+    //å…³é—­èµ„æºçš„æ“ä½œ
     public static void closeResource(Connection conn, PreparedStatement ps, ResultSet rs) {
         try {
             if(rs != null)
@@ -83,37 +75,39 @@ public class JDBCUtils {
     }
 
     /**
-     * Ê¹ÓÃDruidÊı¾İ¿âÁ¬½Ó³Ø¼¼Êõ
+     * ä½¿ç”¨Druidæ•°æ®åº“è¿æ¥æ± æŠ€æœ¯
      */
-    private static DataSource source1;
+    private static DataSource dataSource;
+
     static {
-        InputStream fis = null;
+        InputStream is = null;
         try {
             Properties pros = new Properties();
-            fis = new FileInputStream("C:\\Users\\hufeng\\code\\JDBC\\src\\com\\kaede\\connection\\druid.properties");
-            pros.load(fis);
-            source1 = DruidDataSourceFactory.createDataSource(pros);
+            is = ClassLoader.getSystemClassLoader().getResourceAsStream("druid.properties");
+            pros.load(is);
+            dataSource = DruidDataSourceFactory.createDataSource(pros);
         } catch(Exception e) {
             e.printStackTrace();
         } finally {
             try {
-                if(fis != null)
-                    fis.close();
+                if(is != null)
+                    is.close();
             } catch (IOException e) {
                 e.printStackTrace();
             }
         }
     }
-    public static Connection getConnection1() throws SQLException {
-        Connection conn = source1.getConnection();
+
+    public static Connection getConnectionDruid() throws SQLException {
+        Connection conn = dataSource.getConnection();
         return conn;
     }
 
     /**
-     * Ê¹ÓÃdbutils.jarÖĞÌá¹©µÄDbUtils¹¤¾ßÀà£¬ÊµÏÖ×ÊÔ´µÄ¹Ø±Õ
+     * ä½¿ç”¨dbutils.jarä¸­æä¾›çš„DbUtilså·¥å…·ç±»ï¼Œå®ç°èµ„æºçš„å…³é—­
      */
     public static void closeResource1(Connection conn, PreparedStatement ps, ResultSet rs) {
-        //·½Ê½1£º
+        //æ–¹å¼1ï¼š
         /* try {
             DbUtils.close(conn);
         } catch (SQLException e) {
@@ -130,7 +124,7 @@ public class JDBCUtils {
             e.printStackTrace();
         } */
 
-        //·½Ê½2£º
+        //æ–¹å¼2ï¼š
         DbUtils.closeQuietly(conn);
         DbUtils.closeQuietly(ps);
         DbUtils.closeQuietly(rs);

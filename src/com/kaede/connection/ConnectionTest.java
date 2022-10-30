@@ -1,6 +1,10 @@
 package com.kaede.connection;
 
+import org.junit.jupiter.api.Test;
+
 import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStream;
 import java.sql.Connection;
 import java.sql.Driver;
 import java.sql.DriverManager;
@@ -8,124 +12,117 @@ import java.sql.SQLException;
 import java.util.Properties;
 
 public class ConnectionTest {
-    public static void main(String[] args) throws Exception {
-        // new ConnectionTest().testConnection1();
-        // new ConnectionTest().testConnection2();
-        // new ConnectionTest().testConnection3();
-        // new ConnectionTest().testConnection4();
-        new ConnectionTest().testConnection5();
+
+    @Test
+    public void testConnection1() {
+        try {
+            //1.æä¾›java.sql.Driveræ¥å£å®ç°ç±»çš„å¯¹è±¡
+            Driver driver = new com.mysql.jdbc.Driver();
+            //2.æä¾›urlï¼ŒæŒ‡æ˜å…·ä½“æ“ä½œçš„æ•°æ®
+            String url = "jdbc:mysql://localhost:3306/test";
+            //3.æä¾›Propertiesçš„å¯¹è±¡ï¼ŒæŒ‡æ˜ç”¨æˆ·åå’Œå¯†ç 
+            Properties info = new Properties();
+            info.setProperty("user", "root");
+            info.setProperty("password", "123456");
+            //4.è°ƒç”¨driverçš„connect()ï¼Œè·å–è¿æ¥
+            Connection conn = driver.connect(url, info);
+            System.out.println(conn);
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
     }
 
-    //·½Ê½Ò»£º
-    public void testConnection1() throws SQLException {
-        //»ñÈ¡DriverÊµÏÖÀà¶ÔÏó
-        Driver driver = new com.mysql.jdbc.Driver();
-
-        //jdbc:mysql:Ğ­Òé
-        //localhost:ipµØÖ·
-        //3306:Ä¬ÈÏmysqlµÄ¶Ë¿ÚºÅ
-        //test:testÊı¾İ¿â
-        String url = "jdbc:mysql://localhost:3306/test";
-        //½«ÓÃ»§ÃûºÍÃÜÂë·â×°ÔÚPropertitesÖĞ
-        Properties info = new Properties();
-        info.setProperty("user", "root");
-        info.setProperty("password", "123456");
-
-        Connection conn = driver.connect(url, info);
-
-        System.out.println(conn);
+    @Test
+    public void testConnection2() {
+        try {
+            //1.å®ä¾‹åŒ–Driver
+            String className = "com.mysql.jdbc.Driver";
+            Class clazz = Class.forName(className);
+            Driver driver = (Driver) clazz.newInstance();
+            //2.æä¾›urlï¼ŒæŒ‡æ˜å…·ä½“æ“ä½œçš„æ•°æ®
+            String url = "jdbc:mysql://localhost:3306/test";
+            //3.æä¾›Propertiesçš„å¯¹è±¡ï¼ŒæŒ‡æ˜ç”¨æˆ·åå’Œå¯†ç 
+            Properties info = new Properties();
+            info.setProperty("user", "root");
+            info.setProperty("password", "123456");
+            //4.è°ƒç”¨driverçš„connect()ï¼Œè·å–è¿æ¥
+            Connection conn = driver.connect(url, info);
+            System.out.println(conn);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
-    //·½Ê½¶ş£º¶Ô·½Ê½Ò»µÄµü´ú£ºÔÚÈçÏÂµÄ³ÌĞòÖĞ²»³öÏÖµÚÈı·½µÄAPI£¬Ê¹µÃ³ÌĞò¾ßÓĞ¸üºÃµÄ¿ÉÒÆÖ²ĞÔ
-    public void testConnection2() throws Exception {
-        //1¡¢»ñÈ¡DriverÊµÏÖÀà¶ÔÏó£¬Ê¹ÓÃ·´Éä
-        Class clazz = Class.forName("com.mysql.jdbc.Driver");
-        Driver driver = (Driver) clazz.newInstance();
-
-        //2¡¢Ìá¹©ÒªÁ¬½ÓµÄÊı¾İ¿â
-        String url = "jdbc:mysql://localhost:3306/test";
-        
-        //3¡¢Ìá¹©Á¬½ÓĞèÒªµÄÓÃ»§ÃûºÍÃÜÂë
-        Properties info = new Properties();
-        info.setProperty("user", "root");
-        info.setProperty("password", "123456");
-
-        //4¡¢»ñÈ¡Á¬½Ó
-        Connection conn = driver.connect(url, info);
-        System.out.println(conn);
+    @Test
+    public void testConnection3() {
+        try {
+            //1.æ•°æ®åº“è¿æ¥çš„4ä¸ªåŸºæœ¬è¦ç´ 
+            String url = "jdbc:mysql://localhost:3306/test";
+            String user = "root";
+            String password = "123456";
+            String driverName = "com.mysql.jdbc.Driver";
+            //2.å®ä¾‹åŒ–Driver
+            Class clazz = Class.forName(driverName);
+            Driver driver = (Driver) clazz.newInstance();
+            //3.æ³¨å†Œé©±åŠ¨
+            DriverManager.registerDriver(driver);
+            //4.è·å–è¿æ¥
+            Connection conn = DriverManager.getConnection(url, user, password);
+            System.out.println(conn);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
-    //·½Ê½3£ºÊ¹ÓÃDriverManagerÌæ»»Driver
-    public void testConnection3() throws Exception {
-        //1¡¢»ñÈ¡DriverÊµÏÖÀà¶ÔÏó£¬Ê¹ÓÃ·´Éä
-        Class clazz = Class.forName("com.mysql.jdbc.Driver");
-        Driver driver = (Driver) clazz.newInstance();
-
-        //2¡¢Ìá¹©ÁíÍâÈı¸ö»ù±¾Á¬½ÓµÄĞÅÏ¢
-        String url = "jdbc:mysql://localhost:3306/test";
-        String user = "root";
-        String password = "123456";
-
-        //×¢²áÇı¶¯
-        DriverManager.registerDriver(driver);
-
-        //»ñÈ¡Á¬½Ó
-        Connection conn = DriverManager.getConnection(url, user, password);
-        System.out.println(conn);
+    @Test
+    public void testConnection4() {
+        try {
+            //1ã€æä¾›å¦å¤–ä¸‰ä¸ªåŸºæœ¬è¿æ¥çš„ä¿¡æ¯
+            String url = "jdbc:mysql://localhost:3306/test";
+            String user = "root";
+            String password = "123456";
+            //2ã€è·å–Driverå®ç°ç±»å¯¹è±¡ï¼Œä½¿ç”¨åå°„
+            Class.forName("com.mysql.jdbc.Driver");
+        /*ç›¸è¾ƒäºæ–¹å¼ä¸‰ï¼Œå¯ä»¥çœç•¥ä»¥ä¸‹æ“ä½œ
+            Driver driver = (Driver) clazz.newInstance();
+            DriverManager.registerDriver(driver);
+        */
+            /**
+             *åœ¨mysqlçš„Driverå®ç°ç±»ä¸­ï¼Œå£°æ˜äº†å¦‚ä¸‹çš„æ“ä½œ
+             *static {
+             *      try {
+             *          DriverManager.registerDriver(new Driver());
+             *      } catch(SqlException e) {
+             *          throw new RuntimeException("Cant't register driver!");
+             *      }
+             * }
+             */
+            //3ã€è·å–è¿æ¥
+            Connection conn = DriverManager.getConnection(url, user, password);
+            System.out.println(conn);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
-    //·½Ê½4£º¿ÉÒÔÖ»ÊÇ¼ÓÔØÇı¶¯£¬²»ÓÃÏÔÊ¾µØ×¢²áÇı¶¯
-    public void testConnection4() throws Exception {
-        //1¡¢Ìá¹©ÁíÍâÈı¸ö»ù±¾Á¬½ÓµÄĞÅÏ¢
-        String url = "jdbc:mysql://localhost:3306/test";
-        String user = "root";
-        String password = "123456";
-        
-        //2¡¢»ñÈ¡DriverÊµÏÖÀà¶ÔÏó£¬Ê¹ÓÃ·´Éä
-        Class.forName("com.mysql.jdbc.Driver");
-        //Ïà½ÏÓÚ·½Ê½Èı£¬¿ÉÒÔÊ¡ÂÔÒÔÏÂ²Ù×÷
-        // Driver driver = (Driver) clazz.newInstance();
-        // //×¢²áÇı¶¯
-        // DriverManager.registerDriver(driver);
-        /**
-         * ÔÚmysqlµÄDriverÊµÏÖÀàÖĞ£¬ÉùÃ÷ÁËÈçÏÂµÄ²Ù×÷
-         *static {
-         *      try {
-         *          java.sql.DriverManager.registerDriver(new Driver());
-         *      } catch(SqlException e) {
-         *          throw new RuntimeException("Cant't register driver!"); 
-         *      }
-         * }
-         */
-
-        //3¡¢»ñÈ¡Á¬½Ó
-        Connection conn = DriverManager.getConnection(url, user, password);
-        System.out.println(conn);
-    }
-
-    //·½Ê½5£º½«Êı¾İ¿âÁ¬½ÓĞèÒªµÄËÄ¸ö»ù±¾ĞÅÏ¢ÉùÃ÷ÔÚÅäÖÃÎÄ¼şÖĞ£¬Í¨¹ı¶ÁÈ¡ÅäÖÃÎÄ¼şµÄ·½Ê½£¬»ñÈ¡Á¬½Ó
-    //1¡¢ÊµÏÖÁËÊı¾İÓë´úÂëµÄ·ÖÀë£¬ÊµÏÖÁË½âñî
-    //2¡¢Èç¹ûĞèÒªĞŞ¸ÄÅäÖÃÎÄ¼şĞÅÏ¢£¬¿ÉÒÔ±ÜÃâ³ÌĞòÖØĞÂ´ò°ü
-    public void testConnection5() throws Exception {
-        //1¡¢¶ÁÈ¡ÅäÖÃÎÄ¼şÖĞµÄËÄ¸ö»ù±¾ĞÅÏ¢   
-        // System.out.println(System.getProperty("user.dir"));
-
-        FileInputStream fis = new FileInputStream("C:\\Users\\hufeng\\code\\JDBC\\src\\com\\kaede\\connection\\jdbc.properties");
-        // »òÕß
-        //FileInputStream fis = new FileInputStream(".\\src\\com\\kaede\\connection\\jdbc.properties");
-        Properties pros = new Properties();
-        pros.load(fis);
-
-        String user = pros.getProperty("user");
-        String password = pros.getProperty("password");
-        String url = pros.getProperty("url");
-        String driverClass = pros.getProperty("driverClass");
-
-        //2¡¢¼ÓÔØÇı¶¯
-        Class.forName(driverClass);
-
-        //3¡¢»ñÈ¡Á¬½Ó
-        Connection conn = DriverManager.getConnection(url, user, password);
-        System.out.println(conn);
+    @Test
+    public  void testConnection6() {
+        //1.åŠ è½½é…ç½®æ–‡ä»¶
+        try(InputStream is = ConnectionTest.class.getClassLoader().getResourceAsStream("jdbc.properties")) {
+            Properties pros = new Properties();
+            pros.load(is);
+            //2.è¯»å–é…ç½®ä¿¡æ¯
+            String user = pros.getProperty("user");
+            String password = pros.getProperty("password");
+            String url = pros.getProperty("url");
+            String driverClass = pros.getProperty("driverClass");
+            //3.åŠ è½½é©±åŠ¨
+            Class.forName(driverClass);
+            //4.è·å–è¿æ¥
+            Connection conn = DriverManager.getConnection(url,user,password);
+            System.out.println(conn);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 }

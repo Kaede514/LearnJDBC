@@ -2,86 +2,59 @@ package com.kaede.blob;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
+import java.sql.Statement;
 
 import com.kaede.util.JDBCUtils;
+import org.junit.jupiter.api.Test;
 
 /**
- * Ê¹ÓÃPrepareStatementÊµÏÖÅúÁ¿Êı¾İµÄ²Ù×÷
+ * ä½¿ç”¨PrepareStatementå®ç°æ‰¹é‡æ•°æ®çš„æ“ä½œ
  * 
- * update¡¢delete±¾Éí¾Í¾ßÓĞÅúÁ¿²Ù×÷µÄĞ§¹û
+ * updateã€deleteæœ¬èº«å°±å…·æœ‰æ‰¹é‡æ“ä½œçš„æ•ˆæœ
  * 
- * ´ËÊ±µÄÅúÁ¿²Ù×÷£¬Ö÷ÒªÖ¸ÅúÁ¿²åÈë£¬Ê¹ÓÃPrepareStatementÊµÏÖ¸ü¸ßĞ§µÄÅúÁ¿²åÈë
+ * æ­¤æ—¶çš„æ‰¹é‡æ“ä½œï¼Œä¸»è¦æŒ‡æ‰¹é‡æ’å…¥ï¼Œä½¿ç”¨PrepareStatementå®ç°æ›´é«˜æ•ˆçš„æ‰¹é‡æ’å…¥
  * 
- * ÌâÄ¿£ºÏògoods±íÖĞ²åÈë20000ÌõÊı¾İ
+ * é¢˜ç›®ï¼šå‘goodsè¡¨ä¸­æ’å…¥20000æ¡æ•°æ®
  */
 
 public class InsertTest {
-    public static void main(String[] args) {
-        // new InsertTest().testInsert1();
-        // new InsertTest().testInsert2();
-        // new InsertTest().testInsert3();
-    }
 
+    @Test
     public void testInsert1() {
         Connection conn = null;
-        PreparedStatement ps = null;
+        Statement st = null;
         try {
-            long start = System.currentTimeMillis();
-
+            long startTime = System.currentTimeMillis();
             conn = JDBCUtils.getConnection();
-            String sql = "INSERT INTO goods(name) VALUES(?)";
-            ps = conn.prepareStatement(sql);
-    
+            st = conn.createStatement();
             for(int i=1; i<=20000; i++) {
-                ps.setObject(1, "name_" + i);
-                ps.execute();
+                String sql = "INSERT INTO goods(name) VALUES('name_" + i + "')";
+                st.execute(sql);
             }
-
-            long end = System.currentTimeMillis();
-            System.out.println("»¨·ÑµÄÊ±¼äÎª£º"+(end-start));   //20000Ê±£º25009
+            long endTime = System.currentTimeMillis();
+            System.out.println("----- cost time: " + (endTime - startTime) + " ms -----");
         } catch(Exception e) {
             e.printStackTrace();
         } finally {
-            JDBCUtils.closeResource(conn, ps);
+            JDBCUtils.closeResource(conn, st);
         }
     }
 
-    //Ê¹ÓÃaddBatch()¡¢excuteBatch()
-    //mysql·şÎñÆ÷Ä¬ÈÏÊÇ¹Ø±ÕÅú´¦ÀíµÄ£¬ĞèÒªÍ¨¹ıÒ»¸ö²ÎÊıÈÃmysql¿ªÆôÅú´¦ÀíµÄÖ§³Ö
-    // ?rewriteBatchedStatements=true Ğ´ÔÚÅäÖÃÎÄ¼şµÄurlºóÃæ
+    @Test
     public void testInsert2() {
         Connection conn = null;
         PreparedStatement ps = null;
         try {
-            long start = System.currentTimeMillis();
-
+            long startTime = System.currentTimeMillis();
             conn = JDBCUtils.getConnection();
             String sql = "INSERT INTO goods(name) VALUES(?)";
             ps = conn.prepareStatement(sql);
-    
-            for(int i=1; i<=100001; i++) {
+            for(int i=1; i<=20000; i++) {
                 ps.setObject(1, "name_" + i);
-                
-                //1¡¢¡°ÔÜ¡±sql
-                ps.addBatch();
-
-                if(i % 500 == 0) {
-                    //2¡¢Ö´ĞĞbatch
-                    ps.executeBatch();
-
-                    //3¡¢Çå¿Õbatch
-                    ps.clearBatch();
-                }
-
-                //´¦ÀíÊ£ÓàµÄ
-                if(i == 100001) {
-                    ps.executeBatch();
-                    ps.clearBatch();
-                }
+                ps.execute();
             }
-
-            long end = System.currentTimeMillis(); 
-            System.out.println("»¨·ÑµÄÊ±¼äÎª£º"+(end-start));   //20000Ê±£º487£¬100000Ê±£º1160
+            long endTime = System.currentTimeMillis();
+            System.out.println("----- cost time: " + (endTime - startTime) + " ms -----");
         } catch(Exception e) {
             e.printStackTrace();
         } finally {
@@ -89,47 +62,68 @@ public class InsertTest {
         }
     }
 
-    //ÉèÖÃ²»ÔÊĞí×Ô¶¯Ìá½»Êı¾İ
+    /*
+     * ä¿®æ”¹1ï¼šä½¿ç”¨addBatch()/executeBatch()/clearBatch()
+     * ä¿®æ”¹2ï¼šmysqlæœåŠ¡å™¨é»˜è®¤æ˜¯å…³é—­æ‰¹å¤„ç†çš„ï¼Œéœ€è¦é€šè¿‡ä¸€ä¸ªå‚æ•°ï¼Œè®©mysqlå¼€å¯æ‰¹å¤„ç†çš„æ”¯æŒ
+     * 		 rewriteBatchedStatements=true å†™åœ¨é…ç½®æ–‡ä»¶çš„urlåé¢
+     * ä¿®æ”¹3ï¼šä½¿ç”¨æ›´æ–°çš„mysqlé©±åŠ¨ï¼šmysql-connector-java-5.1.37-bin.jarï¼Œæ—§ç‰ˆæœ¬çš„ä¸æ”¯æŒæ‰¹å¤„ç†
+     */
+    @Test
     public void testInsert3() {
         Connection conn = null;
         PreparedStatement ps = null;
         try {
-            long start = System.currentTimeMillis();
-
+            long startTime = System.currentTimeMillis();
             conn = JDBCUtils.getConnection();
-
-            //ÉèÖÃ²»ÔÊĞí×Ô¶¯Ìá½»Êı¾İ
-            conn.setAutoCommit(false);
-
             String sql = "INSERT INTO goods(name) VALUES(?)";
             ps = conn.prepareStatement(sql);
-    
-            for(int i=1; i<=100001; i++) {
+            for(int i=1; i<=20000; i++) {
                 ps.setObject(1, "name_" + i);
-                
-                //1¡¢¡°ÔÜ¡±sql
+                //1ã€ç§¯ç´¯sql
                 ps.addBatch();
-
                 if(i % 500 == 0) {
-                    //2¡¢Ö´ĞĞbatch
+                    //2ã€æ‰§è¡Œbatch
                     ps.executeBatch();
-
-                    //3¡¢Çå¿Õbatch
-                    ps.clearBatch();
-                }
-
-                //´¦ÀíÊ£ÓàµÄ
-                if(i == 100001) {
-                    ps.executeBatch();
+                    //3ã€æ¸…ç©ºbatch
                     ps.clearBatch();
                 }
             }
+            long endTime = System.currentTimeMillis();
+            System.out.println("----- cost time: " + (endTime - startTime) + " ms -----");
+        } catch(Exception e) {
+            e.printStackTrace();
+        } finally {
+            JDBCUtils.closeResource(conn, ps);
+        }
+    }
 
-            //Ìá½»Êı¾İ
+    //è®¾ç½®ä¸å…è®¸è‡ªåŠ¨æäº¤æ•°æ®
+    @Test
+    public void testInsert4() {
+        Connection conn = null;
+        PreparedStatement ps = null;
+        try {
+            long startTime = System.currentTimeMillis();
+            conn = JDBCUtils.getConnection();
+            //è®¾ç½®ä¸å…è®¸è‡ªåŠ¨æäº¤æ•°æ®
+            conn.setAutoCommit(false);
+            String sql = "INSERT INTO goods(name) VALUES(?)";
+            ps = conn.prepareStatement(sql);
+            for(int i=1; i<=20000; i++) {
+                ps.setObject(1, "name_" + i);
+                //1ã€ç§¯ç´¯sql
+                ps.addBatch();
+                if(i % 500 == 0) {
+                    //2ã€æ‰§è¡Œbatch
+                    ps.executeBatch();
+                    //3ã€æ¸…ç©ºbatch
+                    ps.clearBatch();
+                }
+            }
+            //æäº¤æ•°æ®
             conn.commit();
-
-            long end = System.currentTimeMillis(); 
-            System.out.println("»¨·ÑµÄÊ±¼äÎª£º"+(end-start));   //20000Ê±£º450£¬100000Ê±£º864
+            long endTime = System.currentTimeMillis();
+            System.out.println("----- cost time: " + (endTime - startTime) + " ms -----");
         } catch(Exception e) {
             e.printStackTrace();
         } finally {
