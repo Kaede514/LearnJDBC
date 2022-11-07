@@ -17,7 +17,7 @@ public class JDBCUtils {
     //获取数据库的连接
     public static Connection getConnection() throws Exception {
         //1、读取配置文件中的四个基本信息   
-        InputStream is = ClassLoader.getSystemClassLoader().getResourceAsStream("jdbc.properties");
+        InputStream is = JDBCUtils.class.getClassLoader().getResourceAsStream("jdbc.properties");
         Properties pros = new Properties();
         pros.load(is);
 
@@ -83,7 +83,7 @@ public class JDBCUtils {
         InputStream is = null;
         try {
             Properties pros = new Properties();
-            is = ClassLoader.getSystemClassLoader().getResourceAsStream("druid.properties");
+            is = JDBCUtils.class.getClassLoader().getResourceAsStream("druid.properties");
             pros.load(is);
             dataSource = DruidDataSourceFactory.createDataSource(pros);
         } catch(Exception e) {
